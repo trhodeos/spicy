@@ -8,6 +8,15 @@ import (
   "github.com/alecthomas/participle"
 )
 
+type Value struct {
+  Symbol string `@Ident |`
+  Constant int `@Int`
+}
+
+type StackValue struct {
+  Value Value `@@`
+  AddedValues []*Value `{"+" @@}`
+}
 
 type SegmentStatement struct {
 /*
@@ -24,24 +33,33 @@ type SegmentStatement struct {
                 |entry <symbol>
                 |stack <stackValue>
 */
-  SegmentName string      `"name" @String |`
-  Address     string    `"address" @String |`
+  Name string      `"name" @String |`
+  Address     int `"address" @Int |`
   After       string      `"after" @String |`
   Include     string     `"include" @String |`
   MaxSize     string     `"maxsize" @String |`
   Align       string     `"align" @String |`
-  Flags       string     `"flags" @String |`
-  Number      string     `"number" @String |`
-  entry string     `"entry" @String |`
-  stack string     `"stack" @String`
+  Flags       []*string     `"flags" { "BOOT" | "OBJECT" | "RAW" } |`
+  Number      int `"number" @Int|`
+  Entry string     `"entry" @Ident |`
+  Stack StackValue `"stack" @@`
 }
 
 type Segment struct {
   SegmentStatementList []*SegmentStatement `"beginseg" { @@ } "endseg"`
 }
 
+type WaveStatement struct {
+/*
+ :name <waveName>
+                |include <segmentName>
+*/
+  Name string      `"name" @String |`
+  Include     string     `"include" @String`
+}
+
 type Wave struct {
-  WaveStatementList []*string `"beginwave" { @String } "endwave"`
+  WaveStatementList []*WaveStatement `"beginwave" { @@ } "endwave"`
 }
 
 type Spec struct {
