@@ -18,6 +18,12 @@ type StackValue struct {
   AddedValues []*Value `{"+" @@}`
 }
 
+type Flag struct {
+  Boot bool `@"BOOT" |`
+  Object bool `@"OBJECT" |`
+  Raw bool `@"RAW"`
+}
+
 type SegmentStatement struct {
 /*
  :name <segmentName>
@@ -39,7 +45,7 @@ type SegmentStatement struct {
   Include     string     `"include" @String |`
   MaxSize     string     `"maxsize" @String |`
   Align       string     `"align" @String |`
-  Flags       []*string     `"flags" { "BOOT" | "OBJECT" | "RAW" } |`
+  Flags       []*Flag `"flags" { @@ } |`
   Number      int `"number" @Int|`
   Entry string     `"entry" @Ident |`
   Stack StackValue `"stack" @@`
