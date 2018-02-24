@@ -1,8 +1,8 @@
 package spicy
 
 import (
-  "io"
 	"github.com/alecthomas/participle"
+	"io"
 )
 
 type Constant struct {
@@ -87,5 +87,5 @@ func ParseSpec(r io.Reader) (*Spec, error) {
 
 	spec := &Spec{}
 	err = parser.Parse(r, spec)
-        return spec, err
+	return spec, err
 }
