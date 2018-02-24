@@ -2,7 +2,7 @@ package main
 import (
   "encoding/json"
   "os"
-  "github.com/trhodeos/spicy/lib"
+  "github.com/trhodeos/spicy"
 )
 
 func main() {
