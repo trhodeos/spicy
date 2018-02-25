@@ -3,6 +3,7 @@ import (
   "flag"
   "bufio"
   "os"
+  "fmt"
   "github.com/trhodeos/spicy"
 )
 const (
@@ -71,4 +72,21 @@ func main() {
   if err != nil { panic(err) }
   err = spicy.LinkSpec(spec, *ld_command)
   if err != nil { panic(err) }
+
+  var romheader *os.File
+  var bootstrap *os.File
+  var font *os.File
+  var entry *os.File
+  var code *os.File
+  var raw *os.File
+  name := spec.Waves[0].Name
+  out, err := os.OpenFile(fmt.Sprintf("%s.n64", name), os.O_CREATE|os.O_RDWR, 0755)
+  if err != nil {
+    panic(err)
+  }
+  err = spicy.WriteRomImage(out, romheader, bootstrap, font, entry, code, raw)
+  if err != nil {
+    panic(err)
+  }
+
 }

@@ -1,14 +1,13 @@
 package spicy
+
 import (
-  "os"
+	"os"
 )
 
-
 func generateEntrySource() (string, error) {
- return "", nil
+	return "", nil
 }
 
 func CreateEntrySourceBinary() (*os.File, error) {
-  return nil, nil
+	return nil, nil
 }
-

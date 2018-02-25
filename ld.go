@@ -1,13 +1,13 @@
 package spicy
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/golang/glog"
 	"io/ioutil"
 	"os/exec"
 	"path/filepath"
 	"text/template"
-        "bytes"
 )
 
 func createLdScript(s *Spec) (string, error) {
@@ -76,7 +76,7 @@ SECTIONS {
 	if err != nil {
 		return "", err
 	}
-        b := &bytes.Buffer{}
+	b := &bytes.Buffer{}
 	err = tmpl.Execute(b, s)
 	return b.String(), err
 }
@@ -112,17 +112,16 @@ func LinkSpec(s *Spec, ld_command string) error {
 		return err
 	}
 	cmd := exec.Command(ld_command, "-G 0", "-noinhibit-exec", "-T", ld_path, "-o", fmt.Sprintf("%s.out", name), "-M")
-        var out bytes.Buffer
-        var errout bytes.Buffer
-        cmd.Stdout = &out
-        cmd.Stderr = &errout
+	var out bytes.Buffer
+	var errout bytes.Buffer
+	cmd.Stdout = &out
+	cmd.Stderr = &errout
 	err = cmd.Run()
-        if glog.V(2) {
-          glog.V(2).Info("Ld stdout: ", out.String())
-        }
-        if err != nil {
-          glog.Error(errout.String())
-        }
-        return err
+	if glog.V(2) {
+		glog.V(2).Info("Ld stdout: ", out.String())
+	}
+	if err != nil {
+		glog.Error(errout.String())
+	}
+	return err
 }
-
