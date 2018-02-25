@@ -1,8 +1,9 @@
 package main
 import (
   "bufio"
-  "encoding/json"
+//  "encoding/json"
   "os"
+  "fmt"
   "github.com/alecthomas/kingpin"
   "github.com/trhodeos/spicy"
 )
@@ -47,6 +48,8 @@ func main() {
 
   spec, err := spicy.ParseSpec(bufio.NewReader(f))
   if err != nil { panic(err) }
-
-  json.NewEncoder(os.Stdout).Encode(spec)
+  str, err := spec.GenerateLdScript()
+  if err != nil { panic(err) }
+  fmt.Println(str)
+  //json.NewEncoder(os.Stdout).Encode(spec)
 }

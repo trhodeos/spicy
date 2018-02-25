@@ -5,6 +5,8 @@ import (
 	"io"
         "errors"
         "fmt"
+        "text/template"
+        "os"
 )
 
 type Constant struct {
@@ -232,4 +234,21 @@ func ParseSpec(r io.Reader) (*Spec, error) {
           return nil, err
         }
         return convertAstToSpec(*specAst)
+}
+
+func (s *Spec) GenerateLdScript() (string, error) {
+  t := `
+MEMORY {
+  {{range .Segments}}
+  {{.Name}}.RAM (RX) : ORIGIN = 0x80000450, LENGTH = 0x400000
+  {{.Name}}.bss.RAM (RW) : ORIGIN = 0x80000450, LENGTH = 0x400000
+  {{end}}
+}
+`
+  tmpl, err := template.New("test").Parse(t)
+  if err != nil {
+    return "", err
+  }
+  err = tmpl.Execute(os.Stdout, s)
+  return "", err
 }
