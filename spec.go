@@ -239,10 +239,63 @@ func ParseSpec(r io.Reader) (*Spec, error) {
 func (s *Spec) GenerateLdScript() (string, error) {
   t := `
 MEMORY {
-  {{range .Segments}}
-  {{.Name}}.RAM (RX) : ORIGIN = 0x80000450, LENGTH = 0x400000
-  {{.Name}}.bss.RAM (RW) : ORIGIN = 0x80000450, LENGTH = 0x400000
-  {{end}}
+    {{range .Segments}}
+    {{.Name}}.RAM (RX) : ORIGIN = 0x80000450, LENGTH = 0x400000
+    {{.Name}}.bss.RAM (RW) : ORIGIN = 0x80000450, LENGTH = 0x400000
+    {{end}}
+}
+SECTIONS {
+    _RomSize = 0x1050;
+    _RomStart = _RomSize;
+  {{range .Segments -}}
+    _{{.Name}}SegmentRomStart = _RomSize;
+    ..{{.Name}} 0x80000450 :
+    {
+        _{{.Name}}SegmentStart = .;
+        . = ALIGN(0x10);
+        _{{.Name}}SegmentTextStart = .;
+            {{range .Includes -}}
+            {{.}} (.text)
+            {{end}}
+        _{{.Name}}SegmentTextEnd = .;
+        _{{.Name}}SegmentDataStart = .;
+            {{range .Includes -}}
+            {{.}} (.data)
+            {{end}}
+            {{range .Includes -}}
+            {{.}} (.rodata)
+            {{end}}
+            {{range .Includes -}}
+            {{.}} (.sdata)
+            {{end}}
+        . = ALIGN(0x10);
+        _{{.Name}}SegmentDataEnd = .;
+    } > {{.Name}}.RAM
+    _RomSize += ( _{{.Name}}SegmentDataEnd - _{{.Name}}SegmentTextStart );
+    _{{.Name}}SegmentRomEnd = _RomSize;
+
+    ..{{.Name}}.bss ADDR(..{{.Name}}) + SIZEOF(..{{.Name}}) (NOLOAD) :
+    {
+        . = ALIGN(0x10);
+        _{{.Name}}SegmentBssStart = .;
+            {{range .Includes -}}
+            {{.}} (.sbss)
+            {{end}}
+            {{range .Includes -}}
+            {{.}} (.scommon)
+            {{end}}
+            {{range .Includes -}}
+            {{.}} (.bss)
+            {{end}}
+            {{range .Includes -}}
+            {{.}} (COMMON)
+            {{end}}
+        . = ALIGN(0x10);
+        _{{.Name}}SegmentBssEnd = .;
+        _{{.Name}}SegmentEnd = .;
+    } > {{.Name}}.bss.RAM
+    _{{.Name}}SegmentBssSize = ( _{{.Name}}SegmentBssEnd - _{{.Name}}SegmentBssStart );
+  {{- end}}
 }
 `
   tmpl, err := template.New("test").Parse(t)
