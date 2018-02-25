@@ -106,7 +106,7 @@ func generateLdScript(s *Spec) (string, error) {
 
 func LinkSpec(s *Spec, ld_command string) error {
 	name := s.Waves[0].Name
-	glog.Infoln("Linking spec", name, ".")
+	glog.Infof("Linking spec \"%s\".", name)
 	ld_path, err := generateLdScript(s)
 	if err != nil {
 		return err
@@ -125,3 +125,4 @@ func LinkSpec(s *Spec, ld_command string) error {
         }
         return err
 }
+
