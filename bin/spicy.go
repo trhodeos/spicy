@@ -1,5 +1,6 @@
 package main
 import (
+  "bufio"
   "encoding/json"
   "os"
   "github.com/alecthomas/kingpin"
@@ -39,7 +40,12 @@ Uname Is passed to cpp(1) for use during its invocation.
 
 func main() {
   kingpin.Parse()
-  var spec, err = spicy.ParseSpec(os.Stdin)
+  f, err := os.Open(*spec_file)
+  if err != nil {
+    panic(err)
+  }
+
+  spec, err := spicy.ParseSpec(bufio.NewReader(f))
   if err != nil { panic(err) }
 
   json.NewEncoder(os.Stdout).Encode(spec)
