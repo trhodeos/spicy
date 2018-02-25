@@ -1,27 +1,45 @@
 package main
 import (
+  "flag"
   "bufio"
-//  "encoding/json"
   "os"
-  "fmt"
-  "github.com/alecthomas/kingpin"
   "github.com/trhodeos/spicy"
+)
+const (
+  defines_text = "Defines passed to cpp."
+  includes_text = "Includes passed to cpp.."
+  undefine_text = "Includes passed to cpp.."
+  verbose_text = "If true, be verbose."
+  verbose_link_editor_text = "If true, be verbose when link editing."
+  disable_overlapping_section_check_text = ""
+  romsize_text = "Rom size (MBits)"
+  filldata_text = "filldata byte"
+  bootstrap_filename_text = "Bootstrap file"
+  header_filename_text = "Header file"
+  pif_bootstrap_filename_text = "Pif bootstrap file"
+  rom_image_file_text = "Rom image filename"
+  spec_file_text = "Spec file to use for making the image"
+  ld_command_text = "ld command to use"
+  cpp_command_text = "cpp command to use"
 )
 
 var (
-  defines = kingpin.Flag("define", "Defines passed to cpp.").Short('D').String()
-  includes = kingpin.Flag("include", "Includes passed to cpp..").Short('I').String()
-  undefine = kingpin.Flag("undefine", "Includes passed to cpp..").Short('U').String()
-  verbose = kingpin.Flag("verbose", "If true, be verbose.").Short('d').Bool()
-  link_editor_verbose = kingpin.Flag("link_editor_verbose", "If true, be verbose when link editing.").Short('m').Bool()
-  disable_overlapping_section_check = kingpin.Flag("disable_overlapping_section_check", "").Short('o').Bool()
-  romsize_mbits = kingpin.Flag("romsize", "Rom size (MBits)").Short('s').Int()
-  filldata = kingpin.Flag("filldata", "filldata").Short('f').Int()
-  bootstrap_filename = kingpin.Flag("bootstrap_filename", "Bootstrap file").Short('b').Default("Boot").String()
-  header_filename = kingpin.Flag("header_filename", "Header filename").Short('h').Default("romheader").String()
-  pif_bootstrap_filename = kingpin.Flag("pif_bootstrap_filename", "Pif bootstrap filename").Short('p').Default("pif2Boot").String()
-  rom_image_file = kingpin.Flag("rom_image_filename", "Rom image filename").Short('r').Default("rom").String()
-  spec_file = kingpin.Arg("spec_file", "Spec file to use for making the image").Required().String()
+  defines = flag.String("D", "", defines_text)
+  includes = flag.String("I", "", includes_text)
+  undefine = flag.String("U", "", undefine_text)
+  verbose = flag.Bool("d", false, verbose_text)
+  link_editor_verbose = flag.Bool("m", false, verbose_link_editor_text)
+  disable_overlapping_section_check = flag.Bool("o", false, disable_overlapping_section_check_text)
+  romsize_mbits = flag.Int("s", -1, romsize_text)
+  filldata = flag.Int("f", 0x0, filldata_text)
+  bootstrap_filename = flag.String("b", "Boot", bootstrap_filename_text)
+  header_filename = flag.String("h", "romheader", header_filename_text)
+  pif_bootstrap_filename = flag.String("p", "pif2Boot", pif_bootstrap_filename_text)
+  rom_image_file = flag.String("r", "rom", rom_image_file_text)
+
+  // Non-standard options. Should all be optional.
+  ld_command = flag.String("ld_command", "mips-elf-ld", ld_command_text)
+  cpp_command = flag.String("cpp_command", "mips-elf-cpp", cpp_command_text)
 )
 /*
 -Dname[=def] Is passed to cpp(1) for use during its invocation.
@@ -40,16 +58,17 @@ Uname Is passed to cpp(1) for use during its invocation.
 */
 
 func main() {
-  kingpin.Parse()
-  f, err := os.Open(*spec_file)
+  flag.Parse()
+
+  f, err := os.Open(flag.Arg(0))
   if err != nil {
     panic(err)
   }
 
   spec, err := spicy.ParseSpec(bufio.NewReader(f))
   if err != nil { panic(err) }
-  str, err := spec.GenerateLdScript()
+  err = spec.CheckValidity()
   if err != nil { panic(err) }
-  fmt.Println(str)
-  //json.NewEncoder(os.Stdout).Encode(spec)
+  err = spicy.LinkSpec(spec, *ld_command)
+  if err != nil { panic(err) }
 }
