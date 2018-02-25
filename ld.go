@@ -121,7 +121,7 @@ func LinkSpec(s *Spec, ld_command string) error {
 		glog.V(2).Info("Ld stdout: ", out.String())
 	}
 	if err != nil {
-		glog.Error(errout.String())
+		glog.Error("Error running ld. Stderr output: ", errout.String())
 	}
 	return err
 }

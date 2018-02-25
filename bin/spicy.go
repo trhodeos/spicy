@@ -36,7 +36,8 @@ var (
   bootstrap_filename = flag.String("b", "Boot", bootstrap_filename_text)
   header_filename = flag.String("h", "romheader", header_filename_text)
   pif_bootstrap_filename = flag.String("p", "pif2Boot", pif_bootstrap_filename_text)
-  rom_image_file = flag.String("r", "rom", rom_image_file_text)
+  rom_image_file = flag.String("r", "output.n64", rom_image_file_text)
+  elf_file = flag.String("e", "output.out", rom_image_file_text)
 
   // Non-standard options. Should all be optional.
   ld_command = flag.String("ld_command", "mips-elf-ld", ld_command_text)
