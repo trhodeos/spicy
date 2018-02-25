@@ -5,6 +5,9 @@ import (
 	"fmt"
 	"github.com/alecthomas/participle"
 	"io"
+        "os"
+        "path/filepath"
+        "strings"
 )
 
 type Constant struct {
@@ -141,7 +144,11 @@ func convertSegmentAst(s *SegmentAst) (*Segment, error) {
 			}
 			break
 		case "include":
-			seg.Includes = append(seg.Includes, statement.Value.String)
+                  // Hacky way of moving $(var) -> $var
+                  replaced := strings.Replace(statement.Value.String, "$(", "$", -1)
+                  replaced = strings.Replace(replaced, ")", "", -1)
+                  replaced = filepath.Clean(os.ExpandEnv(replaced))
+			seg.Includes = append(seg.Includes, replaced)
 			break
 		case "maxsize":
 			seg.MaxSize = statement.Value.Int
