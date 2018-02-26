@@ -72,26 +72,28 @@ func main() {
   spec, err := spicy.ParseSpec(bufio.NewReader(f))
   if err != nil { panic(err) }
   err = spec.CheckValidity()
-  if err != nil { panic(err) }
-  err = spicy.LinkSpec(spec, *ld_command)
-  if err != nil { panic(err) }
-  entry, err := spicy.CreateEntryBinary(spec, *as_command, *ld_command)
-  if err != nil { panic(err) }
-  defer entry.Close()
 
-  var romheader *os.File
-  var bootstrap *os.File
-  var font *os.File
-  var code *os.File
-  var raw *os.File
-  name := spec.Waves[0].Name
-  out, err := os.OpenFile(fmt.Sprintf("%s.n64", name), os.O_CREATE|os.O_RDWR, 0755)
-  if err != nil {
-    panic(err)
-  }
-  defer out.Close()
-  err = spicy.WriteRomImage(out, romheader, bootstrap, font, entry, code, raw)
-  if err != nil {
-    panic(err)
+  for _, w := range spec.Waves {
+    if err != nil { panic(err) }
+    err = spicy.LinkSpec(w, *ld_command)
+    if err != nil { panic(err) }
+    entry, err := spicy.CreateEntryBinary(w, *as_command, *ld_command)
+    if err != nil { panic(err) }
+    defer entry.Close()
+
+    var romheader *os.File
+    var bootstrap *os.File
+    var font *os.File
+    var code *os.File
+    var raw *os.File
+    out, err := os.OpenFile(fmt.Sprintf("%s.n64", w.Name), os.O_CREATE|os.O_RDWR, 0755)
+    if err != nil {
+      panic(err)
+    }
+    defer out.Close()
+    err = spicy.WriteRomImage(out, romheader, bootstrap, font, entry, code, raw)
+    if err != nil {
+      panic(err)
+    }
   }
 }

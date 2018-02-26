@@ -10,7 +10,7 @@ import (
 	"text/template"
 )
 
-func createLdScript(s *Spec) (string, error) {
+func createLdScript(w *Wave) (string, error) {
 	t := `
 MEMORY {
     {{range .Segments}}
@@ -77,13 +77,13 @@ SECTIONS {
 		return "", err
 	}
 	b := &bytes.Buffer{}
-	err = tmpl.Execute(b, s)
+	err = tmpl.Execute(b, w)
 	return b.String(), err
 }
 
-func generateLdScript(s *Spec) (string, error) {
+func generateLdScript(w *Wave) (string, error) {
 	glog.V(1).Infoln("Starting to generate ld script.")
-	content, err := createLdScript(s)
+	content, err := createLdScript(w)
 	if err != nil {
 		return "", err
 	}
@@ -104,10 +104,10 @@ func generateLdScript(s *Spec) (string, error) {
 	return path, nil
 }
 
-func LinkSpec(s *Spec, ld_command string) error {
-	name := s.Waves[0].Name
+func LinkSpec(w *Wave, ld_command string) error {
+	name := w.Name
 	glog.Infof("Linking spec \"%s\".", name)
-	ld_path, err := generateLdScript(s)
+	ld_path, err := generateLdScript(w)
 	if err != nil {
 		return err
 	}
@@ -118,7 +118,7 @@ func LinkSpec(s *Spec, ld_command string) error {
 	cmd.Stderr = &errout
 	err = cmd.Run()
 	if glog.V(2) {
-		glog.V(2).Info("Ld stdout: ", out.String())
+		glog.V(2).Info("ld stdout: ", out.String())
 	}
 	if err != nil {
 		glog.Error("Error running ld. Stderr output: ", errout.String())

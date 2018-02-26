@@ -37,9 +37,9 @@ _start:
 	return b.String(), err
 }
 
-func generateEntryScript(s *Spec) (string, error) {
+func generateEntryScript(w *Wave) (string, error) {
 	glog.V(1).Infoln("Starting to generate entry script.")
-	content, err := createEntrySource(s.GetBootSegment())
+	content, err := createEntrySource(w.GetBootSegment())
 	if err != nil {
 		return "", err
 	}
@@ -60,10 +60,10 @@ func generateEntryScript(s *Spec) (string, error) {
 	return path, nil
 }
 
-func CreateEntryBinary(s *Spec, as_command string, ld_command string) (*os.File, error) {
-	name := s.Waves[0].Name
+func CreateEntryBinary(w *Wave, as_command string, ld_command string) (*os.File, error) {
+	name := w.Name
 	glog.Infof("Creating entry for \"%s\".", name)
-	entry_source_path, err := generateEntryScript(s)
+	entry_source_path, err := generateEntryScript(w)
 	if err != nil {
 		return nil, err
 	}
@@ -74,10 +74,10 @@ func CreateEntryBinary(s *Spec, as_command string, ld_command string) (*os.File,
 	cmd.Stderr = &errout
 	err = cmd.Run()
 	if glog.V(2) {
-		glog.V(2).Info("Ld stdout: ", out.String())
+		glog.V(2).Info("as stdout: ", out.String())
 	}
 	if err != nil {
-		glog.Error("Error running ld. Stderr output: ", errout.String())
+		glog.Error("Error running as. Stderr output: ", errout.String())
 	}
 	return nil, err
 }
