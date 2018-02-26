@@ -1,7 +1,6 @@
 package spicy
 
 import (
-        "bytes"
         "errors"
         "fmt"
 	"os"
