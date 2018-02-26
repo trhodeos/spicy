@@ -111,9 +111,9 @@ type Segment struct {
 }
 
 type Wave struct {
-	Name     string
+	Name           string
 	ObjectSegments []*Segment
-	RawSegments []*Segment
+	RawSegments    []*Segment
 }
 
 type Spec struct {
@@ -166,7 +166,7 @@ func convertSegmentAst(s *SegmentAst) (*Segment, error) {
 			}
 			break
 		case "number":
-                        seg.Positioning.Address = statement.Value.Int * 0x1000000
+			seg.Positioning.Address = statement.Value.Int * 0x1000000
 			break
 		case "entry":
 			seg.Entry = &statement.Value.ConstantValue.Lhs.Symbol
@@ -198,11 +198,11 @@ func convertWaveAst(s *WaveAst, segments map[string]*Segment) (*Wave, error) {
 			break
 		case "include":
 			seg := segments[statement.Value.String]
-                        if seg.Flags.Object {
-                          out.ObjectSegments = append(out.ObjectSegments, seg)
-                        } else if seg.Flags.Raw {
-                          out.RawSegments = append(out.RawSegments, seg)
-                        }
+			if seg.Flags.Object {
+				out.ObjectSegments = append(out.ObjectSegments, seg)
+			} else if seg.Flags.Raw {
+				out.RawSegments = append(out.RawSegments, seg)
+			}
 			break
 		default:
 			return nil, errors.New(fmt.Sprintf("Unknown name %s", statement.Name))
@@ -212,11 +212,11 @@ func convertWaveAst(s *WaveAst, segments map[string]*Segment) (*Wave, error) {
 }
 
 func (w *Wave) updateWithConstants() {
-  for _, seg := range(w.ObjectSegments) {
-    if (seg.Flags.Boot) {
-      seg.Positioning.Address = 0x80000450
-    }
-  }
+	for _, seg := range w.ObjectSegments {
+		if seg.Flags.Boot {
+			seg.Positioning.Address = 0x80000450
+		}
+	}
 }
 
 func convertAstToSpec(s SpecAst) (*Spec, error) {
@@ -234,11 +234,11 @@ func convertAstToSpec(s SpecAst) (*Spec, error) {
 		if err != nil {
 			return nil, err
 		}
-                wave.updateWithConstants()
-                err = wave.checkValidity()
-                if err != nil {
-                  return nil, err
-                }
+		wave.updateWithConstants()
+		err = wave.checkValidity()
+		if err != nil {
+			return nil, err
+		}
 		out.Waves = append(out.Waves, wave)
 	}
 
@@ -260,33 +260,33 @@ func ParseSpec(r io.Reader) (*Spec, error) {
 }
 
 func (w *Wave) checkValidity() error {
-              for _, seg := range w.ObjectSegments {
-                      numSet := 0
-                      if seg.Name == "" {
-                              return errors.New("Name must be non-empty.")
-                      }
-                      if seg.Flags.Boot && seg.StackInfo == nil {
-                              return errors.New("Boot segments must have stack info specified.")
-                      }
-                      if seg.Flags.Boot && seg.Entry == nil {
-                              return errors.New("Boot segments must have entry point specified.")
-                      }
-                      if seg.Positioning.Address > 0 {
-                              numSet++
-                      }
-                      if seg.Positioning.AfterSegment != "" {
-                              numSet++
-                      }
-                      if seg.Positioning.AfterMinSegment[0] != "" {
-                              numSet++
-                      }
-                      if seg.Positioning.AfterMaxSegment[0] != "" {
-                              numSet++
-                      }
-                      if numSet > 1 {
-                              return errors.New(fmt.Sprintf("Too many addressing sections specified in segment %s.", seg.Name))
-                      }
-              }
+	for _, seg := range w.ObjectSegments {
+		numSet := 0
+		if seg.Name == "" {
+			return errors.New("Name must be non-empty.")
+		}
+		if seg.Flags.Boot && seg.StackInfo == nil {
+			return errors.New("Boot segments must have stack info specified.")
+		}
+		if seg.Flags.Boot && seg.Entry == nil {
+			return errors.New("Boot segments must have entry point specified.")
+		}
+		if seg.Positioning.Address > 0 {
+			numSet++
+		}
+		if seg.Positioning.AfterSegment != "" {
+			numSet++
+		}
+		if seg.Positioning.AfterMinSegment[0] != "" {
+			numSet++
+		}
+		if seg.Positioning.AfterMaxSegment[0] != "" {
+			numSet++
+		}
+		if numSet > 1 {
+			return errors.New(fmt.Sprintf("Too many addressing sections specified in segment %s.", seg.Name))
+		}
+	}
 	// Per-spec checks
 	// Wave checks
 	return nil
