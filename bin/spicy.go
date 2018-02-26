@@ -71,7 +71,6 @@ func main() {
 
   spec, err := spicy.ParseSpec(bufio.NewReader(f))
   if err != nil { panic(err) }
-  err = spec.CheckValidity()
 
   for _, w := range spec.Waves {
     if err != nil { panic(err) }
