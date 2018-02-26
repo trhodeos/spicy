@@ -24,7 +24,7 @@ type AoutHeader struct {
   TextSize int32
   DataSize int32
   BssSize int32
-  Entry int32
+  Entry uint32
   TextStart uint32
   DataStart uint32
   BssStart uint32
