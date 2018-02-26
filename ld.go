@@ -13,7 +13,7 @@ import (
 func createLdScript(w *Wave) (string, error) {
 	t := `
 MEMORY {
-    {{range .Segments}}
+    {{range .ObjectSegments}}
     {{.Name}}.RAM (RX) : ORIGIN = {{.Positioning.Address}}, LENGTH = 0x400000
     {{.Name}}.bss.RAM (RW) : ORIGIN = {{.Positioning.Address}}, LENGTH = 0x400000
     {{end}}
@@ -21,7 +21,7 @@ MEMORY {
 SECTIONS {
     _RomSize = 0x1050;
     _RomStart = _RomSize;
-  {{range .Segments -}}
+  {{range .ObjectSegments -}}
     _{{.Name}}SegmentRomStart = _RomSize;
     ..{{.Name}} {{.Positioning.Address}}:
     {

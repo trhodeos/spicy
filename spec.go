@@ -112,7 +112,8 @@ type Segment struct {
 
 type Wave struct {
 	Name     string
-	Segments []*Segment
+	ObjectSegments []*Segment
+	RawSegments []*Segment
 }
 
 type Spec struct {
@@ -197,7 +198,11 @@ func convertWaveAst(s *WaveAst, segments map[string]*Segment) (*Wave, error) {
 			break
 		case "include":
 			seg := segments[statement.Value.String]
-			out.Segments = append(out.Segments, seg)
+                        if seg.Flags.Object {
+                          out.ObjectSegments = append(out.ObjectSegments, seg)
+                        } else if seg.Flags.Raw {
+                          out.RawSegments = append(out.RawSegments, seg)
+                        }
 			break
 		default:
 			return nil, errors.New(fmt.Sprintf("Unknown name %s", statement.Name))
@@ -207,7 +212,7 @@ func convertWaveAst(s *WaveAst, segments map[string]*Segment) (*Wave, error) {
 }
 
 func (w *Wave) updateWithConstants() {
-  for _, seg := range(w.Segments) {
+  for _, seg := range(w.ObjectSegments) {
     if (seg.Flags.Boot) {
       seg.Positioning.Address = 0x80000450
     }
@@ -255,7 +260,7 @@ func ParseSpec(r io.Reader) (*Spec, error) {
 }
 
 func (w *Wave) checkValidity() error {
-              for _, seg := range w.Segments {
+              for _, seg := range w.ObjectSegments {
                       numSet := 0
                       if seg.Name == "" {
                               return errors.New("Name must be non-empty.")
@@ -288,7 +293,7 @@ func (w *Wave) checkValidity() error {
 }
 
 func (w *Wave) GetBootSegment() *Segment {
-	for _, seg := range w.Segments {
+	for _, seg := range w.ObjectSegments {
 		if seg.Flags.Boot {
 			return seg
 		}
