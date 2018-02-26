@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"github.com/alecthomas/participle"
 	"io"
-        "os"
-        "path/filepath"
-        "strings"
+	"os"
+	"path/filepath"
+	"strings"
 )
 
 type Constant struct {
@@ -96,9 +96,8 @@ type Positioning struct {
 }
 
 type StackInfo struct {
-	StartSymbol  string
-	StartAddress int
-	Offset       int
+	Start  string
+	Offset int
 }
 
 type Segment struct {
@@ -144,10 +143,10 @@ func convertSegmentAst(s *SegmentAst) (*Segment, error) {
 			}
 			break
 		case "include":
-                  // Hacky way of moving $(var) -> $var
-                  replaced := strings.Replace(statement.Value.String, "$(", "$", -1)
-                  replaced = strings.Replace(replaced, ")", "", -1)
-                  replaced = filepath.Clean(os.ExpandEnv(replaced))
+			// Hacky way of moving $(var) -> $var
+			replaced := strings.Replace(statement.Value.String, "$(", "$", -1)
+			replaced = strings.Replace(replaced, ")", "", -1)
+			replaced = filepath.Clean(os.ExpandEnv(replaced))
 			seg.Includes = append(seg.Includes, replaced)
 			break
 		case "maxsize":
@@ -176,9 +175,9 @@ func convertSegmentAst(s *SegmentAst) (*Segment, error) {
 		case "stack":
 			seg.StackInfo = &StackInfo{}
 			if statement.Value.ConstantValue.Lhs.Symbol != "" {
-				seg.StackInfo.StartSymbol = statement.Value.ConstantValue.Lhs.Symbol
+				seg.StackInfo.Start = statement.Value.ConstantValue.Lhs.Symbol
 			} else {
-				seg.StackInfo.StartAddress = statement.Value.ConstantValue.Lhs.Int
+				seg.StackInfo.Start = string(statement.Value.ConstantValue.Lhs.Int)
 			}
 			if statement.Value.ConstantValue.Rhs.Int != 0 {
 				seg.StackInfo.Offset = statement.Value.ConstantValue.Rhs.Int
@@ -277,5 +276,14 @@ func (s *Spec) CheckValidity() error {
 	}
 	// Per-spec checks
 	// Wave checks
+	return nil
+}
+
+func (s *Spec) GetBootSegment() *Segment {
+	for _, seg := range s.Segments {
+		if seg.Flags.Boot {
+			return seg
+		}
+	}
 	return nil
 }

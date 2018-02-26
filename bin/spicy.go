@@ -21,6 +21,7 @@ const (
   rom_image_file_text = "Rom image filename"
   spec_file_text = "Spec file to use for making the image"
   ld_command_text = "ld command to use"
+  as_command_text = "as command to use"
   cpp_command_text = "cpp command to use"
 )
 
@@ -41,6 +42,7 @@ var (
 
   // Non-standard options. Should all be optional.
   ld_command = flag.String("ld_command", "mips-elf-ld", ld_command_text)
+  as_command = flag.String("as_command", "mips-elf-as", as_command_text)
   cpp_command = flag.String("cpp_command", "mips-elf-cpp", cpp_command_text)
 )
 /*
@@ -73,11 +75,13 @@ func main() {
   if err != nil { panic(err) }
   err = spicy.LinkSpec(spec, *ld_command)
   if err != nil { panic(err) }
+  entry, err := spicy.CreateEntryBinary(spec, *as_command, *ld_command)
+  if err != nil { panic(err) }
+  defer entry.Close()
 
   var romheader *os.File
   var bootstrap *os.File
   var font *os.File
-  var entry *os.File
   var code *os.File
   var raw *os.File
   name := spec.Waves[0].Name
@@ -85,9 +89,9 @@ func main() {
   if err != nil {
     panic(err)
   }
+  defer out.Close()
   err = spicy.WriteRomImage(out, romheader, bootstrap, font, entry, code, raw)
   if err != nil {
     panic(err)
   }
-
 }
