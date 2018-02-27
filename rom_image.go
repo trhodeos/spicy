@@ -6,6 +6,21 @@ import (
 	"os"
 )
 
+// Format:
+// -- 0x0:
+// romheader
+// -- 0x40
+// .text of Boot
+// -- 0x40 + 2864 = 0xB70
+// all of font
+// -- 0x40 + 2864 + 1150 = 0xFEE
+// -- 0x400:
+// some len(0x10) preamble
+// .text of entry.o
+// -- 0x440:
+// ???
+
+
 func fill(f *os.File, fill byte, start int, end int) error {
   if start > end {
     return errors.New(fmt.Sprintf("When filling bytes, start [%d] is greater than end [%d].", start, end))
