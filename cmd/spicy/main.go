@@ -1,50 +1,54 @@
 package main
+
 import (
-  "flag"
-  "bufio"
-  "os"
-  "fmt"
-  "github.com/trhodeos/spicy"
+	"bufio"
+	"flag"
+	"fmt"
+	"github.com/trhodeos/n64rom"
+	"github.com/trhodeos/spicy"
+	"os"
 )
+
 const (
-  defines_text = "Defines passed to cpp."
-  includes_text = "Includes passed to cpp.."
-  undefine_text = "Includes passed to cpp.."
-  verbose_text = "If true, be verbose."
-  verbose_link_editor_text = "If true, be verbose when link editing."
-  disable_overlapping_section_check_text = ""
-  romsize_text = "Rom size (MBits)"
-  filldata_text = "filldata byte"
-  bootstrap_filename_text = "Bootstrap file"
-  header_filename_text = "Header file"
-  pif_bootstrap_filename_text = "Pif bootstrap file"
-  rom_image_file_text = "Rom image filename"
-  spec_file_text = "Spec file to use for making the image"
-  ld_command_text = "ld command to use"
-  as_command_text = "as command to use"
-  cpp_command_text = "cpp command to use"
+	defines_text                           = "Defines passed to cpp."
+	includes_text                          = "Includes passed to cpp.."
+	undefine_text                          = "Includes passed to cpp.."
+	verbose_text                           = "If true, be verbose."
+	verbose_link_editor_text               = "If true, be verbose when link editing."
+	disable_overlapping_section_check_text = ""
+	romsize_text                           = "Rom size (MBits)"
+	filldata_text                          = "filldata byte"
+	bootstrap_filename_text                = "Bootstrap file"
+	header_filename_text                   = "Header file"
+	pif_bootstrap_filename_text            = "Pif bootstrap file"
+	rom_image_file_text                    = "Rom image filename"
+	spec_file_text                         = "Spec file to use for making the image"
+	ld_command_text                        = "ld command to use"
+	as_command_text                        = "as command to use"
+	cpp_command_text                       = "cpp command to use"
 )
 
 var (
-  defines = flag.String("D", "", defines_text)
-  includes = flag.String("I", "", includes_text)
-  undefine = flag.String("U", "", undefine_text)
-  verbose = flag.Bool("d", false, verbose_text)
-  link_editor_verbose = flag.Bool("m", false, verbose_link_editor_text)
-  disable_overlapping_section_check = flag.Bool("o", false, disable_overlapping_section_check_text)
-  romsize_mbits = flag.Int("s", -1, romsize_text)
-  filldata = flag.Int("f", 0x0, filldata_text)
-  bootstrap_filename = flag.String("b", "Boot", bootstrap_filename_text)
-  header_filename = flag.String("h", "romheader", header_filename_text)
-  pif_bootstrap_filename = flag.String("p", "pif2Boot", pif_bootstrap_filename_text)
-  rom_image_file = flag.String("r", "output.n64", rom_image_file_text)
-  elf_file = flag.String("e", "output.out", rom_image_file_text)
+	defines                           = flag.String("D", "", defines_text)
+	includes                          = flag.String("I", "", includes_text)
+	undefine                          = flag.String("U", "", undefine_text)
+	verbose                           = flag.Bool("d", false, verbose_text)
+	link_editor_verbose               = flag.Bool("m", false, verbose_link_editor_text)
+	disable_overlapping_section_check = flag.Bool("o", false, disable_overlapping_section_check_text)
+	romsize_mbits                     = flag.Int("s", -1, romsize_text)
+	filldata                          = flag.Int("f", 0x0, filldata_text)
+	bootstrap_filename                = flag.String("b", "Boot", bootstrap_filename_text)
+	header_filename                   = flag.String("h", "romheader", header_filename_text)
+	pif_bootstrap_filename            = flag.String("p", "pif2Boot", pif_bootstrap_filename_text)
+	rom_image_file                    = flag.String("r", "output.n64", rom_image_file_text)
+	elf_file                          = flag.String("e", "output.out", rom_image_file_text)
 
-  // Non-standard options. Should all be optional.
-  ld_command = flag.String("ld_command", "mips-elf-ld", ld_command_text)
-  as_command = flag.String("as_command", "mips-elf-as", as_command_text)
-  cpp_command = flag.String("cpp_command", "mips-elf-cpp", cpp_command_text)
+	// Non-standard options. Should all be optional.
+	ld_command  = flag.String("ld_command", "mips-elf-ld", ld_command_text)
+	as_command  = flag.String("as_command", "mips-elf-as", as_command_text)
+	cpp_command = flag.String("cpp_command", "mips-elf-cpp", cpp_command_text)
 )
+
 /*
 -Dname[=def] Is passed to cpp(1) for use during its invocation.
 -Idirectory Is passed to cpp(1) for use during its invocation.
@@ -62,37 +66,48 @@ Uname Is passed to cpp(1) for use during its invocation.
 */
 
 func main() {
-  flag.Parse()
+	flag.Parse()
 
-  f, err := os.Open(flag.Arg(0))
-  if err != nil {
-    panic(err)
-  }
+	f, err := os.Open(flag.Arg(0))
+	if err != nil {
+		panic(err)
+	}
 
-  spec, err := spicy.ParseSpec(bufio.NewReader(f))
-  if err != nil { panic(err) }
+	spec, err := spicy.ParseSpec(bufio.NewReader(f))
+	if err != nil {
+		panic(err)
+	}
 
-  for _, w := range spec.Waves {
-    if err != nil { panic(err) }
-    err = spicy.LinkSpec(w, *ld_command)
-    if err != nil { panic(err) }
-    entry, err := spicy.CreateEntryBinary(w, *as_command, *ld_command)
-    if err != nil { panic(err) }
-    defer entry.Close()
+	for _, w := range spec.Waves {
+		if err != nil {
+			panic(err)
+		}
+		err = spicy.LinkSpec(w, *ld_command)
+		if err != nil {
+			panic(err)
+		}
+		entry, err := spicy.CreateEntryBinary(w, *as_command, *ld_command)
+		if err != nil {
+			panic(err)
+		}
+		defer entry.Close()
 
-    var romheader *os.File
-    var bootstrap *os.File
-    var font *os.File
-    var code *os.File
-    var raw *os.File
-    out, err := os.OpenFile(fmt.Sprintf("%s.n64", w.Name), os.O_CREATE|os.O_RDWR, 0755)
-    if err != nil {
-      panic(err)
-    }
-    defer out.Close()
-    err = spicy.WriteRomImage(out, romheader, bootstrap, font, entry, code, raw)
-    if err != nil {
-      panic(err)
-    }
-  }
+		var romheader *os.File
+		var bootstrap *os.File
+		var font *os.File
+		out, err := os.Create(fmt.Sprintf("%s.n64", w.Name))
+		if err != nil {
+			panic(err)
+		}
+		defer out.Close()
+		rom, err := n64rom.NewRomFile(romheader, bootstrap, font, 0)
+		if err != nil {
+			panic(err)
+		}
+		// TODO place actual binary data.
+		_, err = rom.Save(out)
+		if err != nil {
+			panic(err)
+		}
+	}
 }
