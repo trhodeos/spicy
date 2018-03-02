@@ -92,7 +92,6 @@ func main() {
 		}
 		defer entry.Close()
 
-		var romheader *os.File
 		var bootstrap *os.File
 		var font *os.File
 		out, err := os.Create(fmt.Sprintf("%s.n64", w.Name))
@@ -100,7 +99,7 @@ func main() {
 			panic(err)
 		}
 		defer out.Close()
-		rom, err := n64rom.NewRomFile(romheader, bootstrap, font, 0)
+		rom, err := n64rom.NewBlankRomFile(bootstrap, font, 0)
 		if err != nil {
 			panic(err)
 		}

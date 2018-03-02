@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"text/template"
 )
 
@@ -21,55 +22,60 @@ MEMORY {
 SECTIONS {
     _RomSize = 0x1050;
     _RomStart = _RomSize;
-  {{range .ObjectSegments -}}
-    _{{.Name}}SegmentRomStart = _RomSize;
-    ..{{.Name}} {{.Positioning.Address}}:
+    {{range $index, $seg := .ObjectSegments -}}
+    _{{$seg.Name}}SegmentRomStart = _RomSize;
+    ..{{$seg.Name}} {{if eq $index 0 }}{{$seg.Positioning.Address}}{{ end }}:
     {
-        _{{.Name}}SegmentStart = .;
+        _{{$seg.Name}}SegmentStart = .;
         . = ALIGN(0x10);
-        _{{.Name}}SegmentTextStart = .;
-            {{range .Includes -}}
-            {{.}} (.text)
+        _{{$seg.Name}}SegmentTextStart = .;
+            {{range $seg.Includes -}}
+              {{.}} (.text)
             {{end}}
-        _{{.Name}}SegmentTextEnd = .;
-        _{{.Name}}SegmentDataStart = .;
-            {{range .Includes -}}
-            {{.}} (.data)
+        _{{$seg.Name}}SegmentTextEnd = .;
+        _{{$seg.Name}}SegmentDataStart = .;
+            {{range $seg.Includes -}}
+              {{.}} (.data)
             {{end}}
-            {{range .Includes -}}
-            {{.}} (.rodata)
+            {{range $seg.Includes -}}
+              {{.}} (.rodata)
             {{end}}
-            {{range .Includes -}}
-            {{.}} (.sdata)
+            {{range $seg.Includes -}}
+              {{.}} (.sdata)
             {{end}}
         . = ALIGN(0x10);
-        _{{.Name}}SegmentDataEnd = .;
-    } > {{.Name}}.RAM
-    _RomSize += ( _{{.Name}}SegmentDataEnd - _{{.Name}}SegmentTextStart );
-    _{{.Name}}SegmentRomEnd = _RomSize;
+        _{{$seg.Name}}SegmentDataEnd = .;
+    } > {{$seg.Name}}.RAM
+    _RomSize += ( _{{$seg.Name}}SegmentDataEnd - _{{$seg.Name}}SegmentTextStart );
+    _{{$seg.Name}}SegmentRomEnd = _RomSize;
 
-    ..{{.Name}}.bss ADDR(..{{.Name}}) + SIZEOF(..{{.Name}}) (NOLOAD) :
+    ..{{$seg.Name}}.bss ADDR(..{{$seg.Name}}) + SIZEOF(..{{$seg.Name}}) (NOLOAD) :
     {
         . = ALIGN(0x10);
-        _{{.Name}}SegmentBssStart = .;
-            {{range .Includes -}}
-            {{.}} (.sbss)
+        _{{$seg.Name}}SegmentBssStart = .;
+            {{range $seg.Includes -}}
+              {{.}} (.sbss)
             {{end}}
-            {{range .Includes -}}
-            {{.}} (.scommon)
+            {{range $seg.Includes -}}
+              {{.}} (.scommon)
             {{end}}
-            {{range .Includes -}}
-            {{.}} (.bss)
+            {{range $seg.Includes -}}
+              {{.}} (.bss)
             {{end}}
-            {{range .Includes -}}
-            {{.}} (COMMON)
+            {{range $seg.Includes -}}
+              {{.}} (COMMON)
             {{end}}
         . = ALIGN(0x10);
-        _{{.Name}}SegmentBssEnd = .;
-        _{{.Name}}SegmentEnd = .;
-    } > {{.Name}}.bss.RAM
-    _{{.Name}}SegmentBssSize = ( _{{.Name}}SegmentBssEnd - _{{.Name}}SegmentBssStart );
-  {{- end}}
+        _{{$seg.Name}}SegmentBssEnd = .;
+        _{{$seg.Name}}SegmentEnd = .;
+    } > {{$seg.Name}}.bss.RAM
+    _{{$seg.Name}}SegmentBssSize = ( _{{$seg.Name}}SegmentBssEnd - _{{$seg.Name}}SegmentBssStart );
+  {{ end }}
+  /DISCARD/ :
+  {
+        *(.MIPS.abiflags*)
+	  }
+  _RomEnd = _RomSize;
 }
 `
 	tmpl, err := template.New("test").Parse(t)
@@ -111,7 +117,9 @@ func LinkSpec(w *Wave, ld_command string) error {
 	if err != nil {
 		return err
 	}
-	cmd := exec.Command(ld_command, "-G 0", "-noinhibit-exec", "-T", ld_path, "-o", fmt.Sprintf("%s.out", name), "-M")
+	sh := []string{"-nostdinc", "-dT", ld_path, "-o", fmt.Sprintf("%s.out", name), "-M"}
+	fmt.Printf("About to run %s %s\n", ld_command, strings.Join(sh, " "))
+	cmd := exec.Command(ld_command, sh...)
 	var out bytes.Buffer
 	var errout bytes.Buffer
 	cmd.Stdout = &out
