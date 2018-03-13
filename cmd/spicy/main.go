@@ -44,9 +44,10 @@ var (
 	elf_file                          = flag.String("e", "output.out", rom_image_file_text)
 
 	// Non-standard options. Should all be optional.
-	ld_command  = flag.String("ld_command", "mips-elf-ld", ld_command_text)
-	as_command  = flag.String("as_command", "mips-elf-as", as_command_text)
-	cpp_command = flag.String("cpp_command", "mips-elf-cpp", cpp_command_text)
+	ld_command    = flag.String("ld_command", "mips-elf-ld", ld_command_text)
+	as_command    = flag.String("as_command", "mips-elf-as", as_command_text)
+	cpp_command   = flag.String("cpp_command", "mips-elf-cpp", cpp_command_text)
+	font_filename = flag.String("font_filename", "font", "Font filename")
 )
 
 /*
@@ -92,15 +93,20 @@ func main() {
 		}
 		defer entry.Close()
 
-		var bootstrap *os.File
-		var font *os.File
-		// TODO find bootstrrap and font files on filesystem.
+		bootstrap, err := os.Open(*bootstrap_filename)
+		if err != nil {
+			panic(err)
+		}
+		font, err := os.Open(*font_filename)
+		if err != nil {
+			panic(err)
+		}
 		out, err := os.Create(fmt.Sprintf("%s.n64", w.Name))
 		if err != nil {
 			panic(err)
 		}
 		defer out.Close()
-		rom, err := n64rom.NewBlankRomFile(bootstrap, font, 0)
+		rom, err := n64rom.NewBlankRomFile(bootstrap, font, byte(*filldata))
 		if err != nil {
 			panic(err)
 		}
