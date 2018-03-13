@@ -82,11 +82,11 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		err = spicy.LinkSpec(w, *ld_command)
+		linked_object_path, err := spicy.LinkSpec(w, *ld_command)
 		if err != nil {
 			panic(err)
 		}
-		entry, err := spicy.CreateEntryBinary(w, *as_command, *ld_command)
+		entry, err := spicy.CreateEntryBinary(w, *as_command, *ld_command, linked_object_path)
 		if err != nil {
 			panic(err)
 		}
@@ -94,6 +94,7 @@ func main() {
 
 		var bootstrap *os.File
 		var font *os.File
+		// TODO find bootstrrap and font files on filesystem.
 		out, err := os.Create(fmt.Sprintf("%s.n64", w.Name))
 		if err != nil {
 			panic(err)

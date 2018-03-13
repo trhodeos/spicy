@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"github.com/golang/glog"
 	"io/ioutil"
-	"os/exec"
 	"path/filepath"
-	"strings"
 	"text/template"
 )
 
@@ -71,6 +69,55 @@ SECTIONS {
     } > {{$seg.Name}}.bss.RAM
     _{{$seg.Name}}SegmentBssSize = ( _{{$seg.Name}}SegmentBssEnd - _{{$seg.Name}}SegmentBssStart );
   {{ end }}
+  {{range $index, $seg := .RawSegments -}}
+    _{{$seg.Name}}SegmentRomStart = _RomSize;
+    ..{{$seg.Name}} : AT( _RomSize )
+    {
+        _{{$seg.Name}}SegmentStart = .;
+        . = ALIGN(0x10);
+        _{{$seg.Name}}SegmentTextStart = .;
+            {{range $seg.Includes -}}
+              {{.}} (.text)
+            {{end}}
+        _{{$seg.Name}}SegmentTextEnd = .;
+        _{{$seg.Name}}SegmentDataStart = .;
+            {{range $seg.Includes -}}
+              {{.}} (.data)
+            {{end}}
+            {{range $seg.Includes -}}
+              {{.}} (.rodata)
+            {{end}}
+            {{range $seg.Includes -}}
+              {{.}} (.sdata)
+            {{end}}
+        . = ALIGN(0x10);
+        _{{$seg.Name}}SegmentDataEnd = .;
+    } > {{$seg.Name}}.RAM
+    _RomSize += ( _{{$seg.Name}}SegmentDataEnd - _{{$seg.Name}}SegmentTextStart );
+    _{{$seg.Name}}SegmentRomEnd = _RomSize;
+
+    ..{{$seg.Name}}.bss ADDR(..{{$seg.Name}}) + SIZEOF(..{{$seg.Name}}) (NOLOAD) : AT ( _RomSize )
+    {
+        . = ALIGN(0x10);
+        _{{$seg.Name}}SegmentBssStart = .;
+            {{range $seg.Includes -}}
+              {{.}} (.sbss)
+            {{end}}
+            {{range $seg.Includes -}}
+              {{.}} (.scommon)
+            {{end}}
+            {{range $seg.Includes -}}
+              {{.}} (.bss)
+            {{end}}
+            {{range $seg.Includes -}}
+              {{.}} (COMMON)
+            {{end}}
+        . = ALIGN(0x10);
+        _{{$seg.Name}}SegmentBssEnd = .;
+        _{{$seg.Name}}SegmentEnd = .;
+    } > {{$seg.Name}}.bss.RAM
+    _{{$seg.Name}}SegmentBssSize = ( _{{$seg.Name}}SegmentBssEnd - _{{$seg.Name}}SegmentBssStart );
+  {{ end }}
   /DISCARD/ :
   {
         *(.MIPS.abiflags*)
@@ -110,26 +157,14 @@ func generateLdScript(w *Wave) (string, error) {
 	return path, nil
 }
 
-func LinkSpec(w *Wave, ld_command string) error {
+func LinkSpec(w *Wave, ld_command string) (string, error) {
 	name := w.Name
 	glog.Infof("Linking spec \"%s\".", name)
 	ld_path, err := generateLdScript(w)
 	if err != nil {
-		return err
+		return "", err
 	}
-	sh := []string{"-nostdinc", "-dT", ld_path, "-o", fmt.Sprintf("%s.out", name), "-M"}
-	fmt.Printf("About to run %s %s\n", ld_command, strings.Join(sh, " "))
-	cmd := exec.Command(ld_command, sh...)
-	var out bytes.Buffer
-	var errout bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &errout
-	err = cmd.Run()
-	if glog.V(2) {
-		glog.V(2).Info("ld stdout: ", out.String())
-	}
-	if err != nil {
-		glog.Error("Error running ld. Stderr output: ", errout.String())
-	}
-	return err
+	output_path := fmt.Sprintf("%s.out", name)
+	err = RunCmd(ld_command, "-S", "-nostartfiles", "-nodefaultlibs", "-nostdinc", "-dT", ld_path, "-o", output_path, "-M")
+	return output_path, err
 }

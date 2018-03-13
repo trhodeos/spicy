@@ -5,7 +5,6 @@ import (
 	"github.com/golang/glog"
 	"io/ioutil"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"text/template"
 )
@@ -60,24 +59,24 @@ func generateEntryScript(w *Wave) (string, error) {
 	return path, nil
 }
 
-func CreateEntryBinary(w *Wave, as_command string, ld_command string) (*os.File, error) {
+func CreateEntryBinary(w *Wave, as_command string, ld_command string, linked_obj string) (*os.File, error) {
 	name := w.Name
 	glog.Infof("Creating entry for \"%s\".", name)
 	entry_source_path, err := generateEntryScript(w)
 	if err != nil {
 		return nil, err
 	}
-	cmd := exec.Command(as_command, "-non_shared", entry_source_path)
-	var out bytes.Buffer
-	var errout bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &errout
-	err = cmd.Run()
-	if glog.V(2) {
-		glog.V(2).Info("as stdout: ", out.String())
-	}
+	err = RunCmd(as_command, "-mgp32", "-mfp32", "-march=vr4300", "-non_shared", entry_source_path)
 	if err != nil {
-		glog.Error("Error running as. Stderr output: ", errout.String())
+		return nil, err
 	}
-	return nil, err
+	tmpfile, err := ioutil.TempFile("", "linked-entry-script")
+	path, err := filepath.Abs(tmpfile.Name())
+	if err != nil {
+		tmpfile.Close()
+		return nil, err
+	}
+	err = RunCmd(ld_command, "-R", linked_obj, "-o", path, "a.out")
+
+	return tmpfile, err
 }
