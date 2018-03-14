@@ -87,20 +87,27 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		entry, err := spicy.CreateEntryBinary(w, *as_command, *ld_command, linked_object_path)
+		entry, err := spicy.CreateEntryBinary(w, *as_command, *ld_command, "mips-elf-objcopy", linked_object_path)
 		if err != nil {
 			panic(err)
 		}
 		defer entry.Close()
+		binarized_object_file, err := spicy.BinarizeObject(linked_object_path, "mips-elf-objcopy")
+		if err != nil {
+			panic(err)
+		}
+		defer binarized_object_file.Close()
 
 		bootstrap, err := os.Open(*bootstrap_filename)
 		if err != nil {
 			panic(err)
 		}
+		defer bootstrap.Close()
 		font, err := os.Open(*font_filename)
 		if err != nil {
 			panic(err)
 		}
+		defer font.Close()
 		out, err := os.Create(fmt.Sprintf("%s.n64", w.Name))
 		if err != nil {
 			panic(err)
@@ -110,7 +117,8 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		// TODO place actual binary data.
+		rom.CopyTo(entry, n64rom.CodeStart)
+		rom.CopyTo(binarized_object_file, n64rom.CodeStart+0x50)
 		_, err = rom.Save(out)
 		if err != nil {
 			panic(err)

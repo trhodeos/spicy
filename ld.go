@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/golang/glog"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"text/template"
 )
@@ -22,7 +23,7 @@ SECTIONS {
     _RomStart = _RomSize;
     {{range $index, $seg := .ObjectSegments -}}
     _{{$seg.Name}}SegmentRomStart = _RomSize;
-    ..{{$seg.Name}} {{if eq $index 0 }}{{$seg.Positioning.Address}}{{ end }}:
+    ..{{$seg.Name}} {{if eq $index 0 }}{{$seg.Positioning.Address}}{{ end }}: AT( _RomSize )
     {
         _{{$seg.Name}}SegmentStart = .;
         . = ALIGN(0x10);
@@ -166,5 +167,22 @@ func LinkSpec(w *Wave, ld_command string) (string, error) {
 	}
 	output_path := fmt.Sprintf("%s.out", name)
 	err = RunCmd(ld_command, "-S", "-nostartfiles", "-nodefaultlibs", "-nostdinc", "-dT", ld_path, "-o", output_path, "-M")
+	if err != nil {
+		return "", err
+	}
 	return output_path, err
+}
+
+func BinarizeObject(obj_path string, objcopy_command string) (*os.File, error) {
+	output_bin := fmt.Sprintf("%s.bin", obj_path)
+	err := RunCmd(objcopy_command, "-O", "binary", obj_path, output_bin)
+	if err != nil {
+		return nil, err
+	}
+	file, err := os.Open(output_bin)
+	if err != nil {
+		return nil, err
+	}
+	_, err = file.Seek(0x1050, os.SEEK_CUR)
+	return file, err
 }

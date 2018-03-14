@@ -59,7 +59,7 @@ func generateEntryScript(w *Wave) (string, error) {
 	return path, nil
 }
 
-func CreateEntryBinary(w *Wave, as_command string, ld_command string, linked_obj string) (*os.File, error) {
+func CreateEntryBinary(w *Wave, as_command string, ld_command string, objcopy_command string, linked_obj string) (*os.File, error) {
 	name := w.Name
 	glog.Infof("Creating entry for \"%s\".", name)
 	entry_source_path, err := generateEntryScript(w)
@@ -77,6 +77,13 @@ func CreateEntryBinary(w *Wave, as_command string, ld_command string, linked_obj
 		return nil, err
 	}
 	err = RunCmd(ld_command, "-R", linked_obj, "-o", path, "a.out")
-
-	return tmpfile, err
+	if err != nil {
+		tmpfile.Close()
+		return nil, err
+	}
+	defer tmpfile.Close()
+	outfile, err := ioutil.TempFile("", "binarized-entry-script")
+	outpath, err := filepath.Abs(outfile.Name())
+	err = RunCmd(objcopy_command, "-O", "binary", path, outpath)
+	return outfile, err
 }
