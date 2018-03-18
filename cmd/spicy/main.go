@@ -126,6 +126,13 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+		if *romsize_mbits > 0 {
+			minSize := int64(1000000 * *romsize_mbits / 8)
+			_, err := out.WriteAt([]byte{0}, minSize)
+			if err != nil {
+				panic(err)
+			}
+		}
 		_, err = rom.Save(out)
 		if err != nil {
 			panic(err)
