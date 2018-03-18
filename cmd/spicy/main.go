@@ -99,22 +99,12 @@ func main() {
 		}
 		defer binarized_object_file.Close()
 
-		bootstrap, err := os.Open(*bootstrap_filename)
-		if err != nil {
-			panic(err)
-		}
-		defer bootstrap.Close()
-		font, err := os.Open(*font_filename)
-		if err != nil {
-			panic(err)
-		}
-		defer font.Close()
 		out, err := os.Create(fmt.Sprintf("%s.n64", w.Name))
 		if err != nil {
 			panic(err)
 		}
 		defer out.Close()
-		rom, err := n64rom.NewBlankRomFile(bootstrap, font, byte(*filldata))
+		rom, err := n64rom.NewBlankRomFile(byte(*filldata))
 		if err != nil {
 			panic(err)
 		}
