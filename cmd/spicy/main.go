@@ -45,10 +45,10 @@ var (
 	elf_file                          = flag.String("e", "output.out", rom_image_file_text)
 
 	// Non-standard options. Should all be optional.
-	ld_command      = flag.String("ld_command", "mips-elf-ld", ld_command_text)
-	as_command      = flag.String("as_command", "mips-elf-as", as_command_text)
-	cpp_command     = flag.String("cpp_command", "mips-elf-gcc", cpp_command_text)
-	objcopy_command = flag.String("objcopy_command", "mips-elf-objcopy", objcopy_command_text)
+	ld_command      = flag.String("ld_command", "mips64-elf-ld", ld_command_text)
+	as_command      = flag.String("as_command", "mips64-elf-as", as_command_text)
+	cpp_command     = flag.String("cpp_command", "mips64-elf-gcc", cpp_command_text)
+	objcopy_command = flag.String("objcopy_command", "mips64-elf-objcopy", objcopy_command_text)
 	font_filename   = flag.String("font_filename", "font", "Font filename")
 )
 
