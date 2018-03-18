@@ -12,21 +12,22 @@ import (
 
 const (
 	defines_text                           = "Defines passed to cpp."
-	includes_text                          = "Includes passed to cpp.."
-	undefine_text                          = "Includes passed to cpp.."
+	includes_text                          = "Includes passed to cpp."
+	undefine_text                          = "Undefines passed to cpp.."
 	verbose_text                           = "If true, be verbose."
 	verbose_link_editor_text               = "If true, be verbose when link editing."
-	disable_overlapping_section_check_text = ""
+	disable_overlapping_section_check_text = "If true, disable overlapping section checks."
 	romsize_text                           = "Rom size (MBits)"
 	filldata_text                          = "filldata byte"
-	bootstrap_filename_text                = "Bootstrap file"
-	header_filename_text                   = "Header file"
-	pif_bootstrap_filename_text            = "Pif bootstrap file"
+	bootstrap_filename_text                = "Bootstrap file (not currently used)"
+	header_filename_text                   = "Header file (not currently used)"
+	pif_bootstrap_filename_text            = "Pif bootstrap file (not currently used)"
 	rom_image_file_text                    = "Rom image filename"
 	spec_file_text                         = "Spec file to use for making the image"
 	ld_command_text                        = "ld command to use"
 	as_command_text                        = "as command to use"
 	cpp_command_text                       = "cpp command to use"
+	objcopy_command_text                   = "objcopy command to use"
 )
 
 var (
@@ -45,10 +46,11 @@ var (
 	elf_file                          = flag.String("e", "output.out", rom_image_file_text)
 
 	// Non-standard options. Should all be optional.
-	ld_command    = flag.String("ld_command", "mips-elf-ld", ld_command_text)
-	as_command    = flag.String("as_command", "mips-elf-as", as_command_text)
-	cpp_command   = flag.String("cpp_command", "mips-elf-cpp", cpp_command_text)
-	font_filename = flag.String("font_filename", "font", "Font filename")
+	ld_command      = flag.String("ld_command", "mips-elf-ld", ld_command_text)
+	as_command      = flag.String("as_command", "mips-elf-as", as_command_text)
+	cpp_command     = flag.String("cpp_command", "mips-elf-cpp", cpp_command_text)
+	objcopy_command = flag.String("objcopy_command", "mips-elf-objcopy", objcopy_command_text)
+	font_filename   = flag.String("font_filename", "font", "Font filename")
 )
 
 /*
@@ -93,7 +95,7 @@ func main() {
 			panic(err)
 		}
 		defer entry.Close()
-		binarized_object_file, err := spicy.BinarizeObject(linked_object_path, "mips-elf-objcopy")
+		binarized_object_file, err := spicy.BinarizeObject(linked_object_path, *objcopy_command)
 		if err != nil {
 			panic(err)
 		}
