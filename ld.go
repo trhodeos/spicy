@@ -12,6 +12,7 @@ import (
 
 func createLdScript(w *Wave) (string, error) {
 	t := `
+ENTRY(_start)
 MEMORY {
     {{range .ObjectSegments}}
     {{.Name}}.RAM (RX) : ORIGIN = {{.Positioning.Address}}, LENGTH = 0x400000
@@ -19,11 +20,16 @@ MEMORY {
     {{end}}
 }
 SECTIONS {
+    ..generatedStartEntry 0x80000400 : AT(0x1000)
+    {
+      a.out (.text)
+    }
+
     _RomSize = 0x1050;
     _RomStart = _RomSize;
     {{range $index, $seg := .ObjectSegments -}}
     _{{$seg.Name}}SegmentRomStart = _RomSize;
-    ..{{$seg.Name}} {{if eq $index 0 }}{{$seg.Positioning.Address}}{{ end }}: AT( _RomSize )
+    ..{{$seg.Name}} {{$seg.Positioning.Address}} : AT(_RomSize)
     {
         _{{$seg.Name}}SegmentStart = .;
         . = ALIGN(0x10);
@@ -70,59 +76,10 @@ SECTIONS {
     } > {{$seg.Name}}.bss.RAM
     _{{$seg.Name}}SegmentBssSize = ( _{{$seg.Name}}SegmentBssEnd - _{{$seg.Name}}SegmentBssStart );
   {{ end }}
-  {{range $index, $seg := .RawSegments -}}
-    _{{$seg.Name}}SegmentRomStart = _RomSize;
-    ..{{$seg.Name}} : AT( _RomSize )
-    {
-        _{{$seg.Name}}SegmentStart = .;
-        . = ALIGN(0x10);
-        _{{$seg.Name}}SegmentTextStart = .;
-            {{range $seg.Includes -}}
-              {{.}} (.text)
-            {{end}}
-        _{{$seg.Name}}SegmentTextEnd = .;
-        _{{$seg.Name}}SegmentDataStart = .;
-            {{range $seg.Includes -}}
-              {{.}} (.data)
-            {{end}}
-            {{range $seg.Includes -}}
-              {{.}} (.rodata)
-            {{end}}
-            {{range $seg.Includes -}}
-              {{.}} (.sdata)
-            {{end}}
-        . = ALIGN(0x10);
-        _{{$seg.Name}}SegmentDataEnd = .;
-    } > {{$seg.Name}}.RAM
-    _RomSize += ( _{{$seg.Name}}SegmentDataEnd - _{{$seg.Name}}SegmentTextStart );
-    _{{$seg.Name}}SegmentRomEnd = _RomSize;
-
-    ..{{$seg.Name}}.bss ADDR(..{{$seg.Name}}) + SIZEOF(..{{$seg.Name}}) (NOLOAD) : AT ( _RomSize )
-    {
-        . = ALIGN(0x10);
-        _{{$seg.Name}}SegmentBssStart = .;
-            {{range $seg.Includes -}}
-              {{.}} (.sbss)
-            {{end}}
-            {{range $seg.Includes -}}
-              {{.}} (.scommon)
-            {{end}}
-            {{range $seg.Includes -}}
-              {{.}} (.bss)
-            {{end}}
-            {{range $seg.Includes -}}
-              {{.}} (COMMON)
-            {{end}}
-        . = ALIGN(0x10);
-        _{{$seg.Name}}SegmentBssEnd = .;
-        _{{$seg.Name}}SegmentEnd = .;
-    } > {{$seg.Name}}.bss.RAM
-    _{{$seg.Name}}SegmentBssSize = ( _{{$seg.Name}}SegmentBssEnd - _{{$seg.Name}}SegmentBssStart );
-  {{ end }}
   /DISCARD/ :
   {
         *(.MIPS.abiflags*)
-	  }
+  }
   _RomEnd = _RomSize;
 }
 `
@@ -166,7 +123,7 @@ func LinkSpec(w *Wave, ld_command string) (string, error) {
 		return "", err
 	}
 	output_path := fmt.Sprintf("%s.out", name)
-	err = RunCmd(ld_command, "-S", "-nostartfiles", "-nodefaultlibs", "-nostdinc", "-dT", ld_path, "-o", output_path, "-M")
+	err = RunCmd(ld_command, "-G 0", "-S", "-nostartfiles", "-nodefaultlibs", "-nostdinc", "-dT", ld_path, "-o", output_path, "-M")
 	if err != nil {
 		return "", err
 	}
@@ -183,6 +140,5 @@ func BinarizeObject(obj_path string, objcopy_command string) (*os.File, error) {
 	if err != nil {
 		return nil, err
 	}
-	_, err = file.Seek(0x1050, os.SEEK_CUR)
 	return file, err
 }

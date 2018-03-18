@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/trhodeos/n64rom"
 	"github.com/trhodeos/spicy"
+	"io/ioutil"
 	"os"
 )
 
@@ -83,11 +84,11 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
+		entry, err := spicy.CreateEntryBinary(w, *as_command)
 		linked_object_path, err := spicy.LinkSpec(w, *ld_command)
 		if err != nil {
 			panic(err)
 		}
-		entry, err := spicy.CreateEntryBinary(w, *as_command, *ld_command, "mips-elf-objcopy", linked_object_path)
 		if err != nil {
 			panic(err)
 		}
@@ -117,8 +118,14 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		rom.CopyTo(entry, n64rom.CodeStart)
-		rom.CopyTo(binarized_object_file, n64rom.CodeStart+0x50)
+		binarized_object_bytes, err := ioutil.ReadAll(binarized_object_file)
+		if err != nil {
+			panic(err)
+		}
+		rom.WriteAt(binarized_object_bytes, n64rom.CodeStart)
+		if err != nil {
+			panic(err)
+		}
 		_, err = rom.Save(out)
 		if err != nil {
 			panic(err)

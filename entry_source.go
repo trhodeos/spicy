@@ -12,7 +12,7 @@ import (
 func createEntrySource(bootSegment *Segment) (string, error) {
 	t := `
 	.text
-	.globl	_start
+	.global	_start
 _start:
 	la	$8,_{{.Name}}SegmentBssStart
 	la	$9,_{{.Name}}SegmentBssSize
@@ -59,31 +59,16 @@ func generateEntryScript(w *Wave) (string, error) {
 	return path, nil
 }
 
-func CreateEntryBinary(w *Wave, as_command string, ld_command string, objcopy_command string, linked_obj string) (*os.File, error) {
+func CreateEntryBinary(w *Wave, as_command string) (*os.File, error) {
 	name := w.Name
 	glog.Infof("Creating entry for \"%s\".", name)
 	entry_source_path, err := generateEntryScript(w)
 	if err != nil {
 		return nil, err
 	}
-	err = RunCmd(as_command, "-mgp32", "-mfp32", "-march=vr4300", "-non_shared", entry_source_path)
+	err = RunCmd(as_command, "-march=vr4300", "-mtune=vr4300", "-mgp32", "-mfp32", "-non_shared", entry_source_path)
 	if err != nil {
 		return nil, err
 	}
-	tmpfile, err := ioutil.TempFile("", "linked-entry-script")
-	path, err := filepath.Abs(tmpfile.Name())
-	if err != nil {
-		tmpfile.Close()
-		return nil, err
-	}
-	err = RunCmd(ld_command, "-R", linked_obj, "-o", path, "a.out")
-	if err != nil {
-		tmpfile.Close()
-		return nil, err
-	}
-	defer tmpfile.Close()
-	outfile, err := ioutil.TempFile("", "binarized-entry-script")
-	outpath, err := filepath.Abs(outfile.Name())
-	err = RunCmd(objcopy_command, "-O", "binary", path, outpath)
-	return outfile, err
+	return nil, err
 }
