@@ -245,6 +245,10 @@ func convertAstToSpec(s SpecAst) (*Spec, error) {
 	return out, nil
 }
 
+func PreprocessSpec(file io.Reader, gcc_command string) (io.Reader, error) {
+	return RunCmdReturnStdout(gcc_command, file, "-P", "-E", "-U_LANGUAGE_C", "-D_LANGUAGE_SPEC", "-")
+}
+
 func ParseSpec(r io.Reader) (*Spec, error) {
 	parser, err := participle.Build(&SpecAst{}, nil)
 	if err != nil {

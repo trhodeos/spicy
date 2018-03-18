@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	"github.com/trhodeos/n64rom"
@@ -48,7 +47,7 @@ var (
 	// Non-standard options. Should all be optional.
 	ld_command      = flag.String("ld_command", "mips-elf-ld", ld_command_text)
 	as_command      = flag.String("as_command", "mips-elf-as", as_command_text)
-	cpp_command     = flag.String("cpp_command", "mips-elf-cpp", cpp_command_text)
+	cpp_command     = flag.String("cpp_command", "mips-elf-gcc", cpp_command_text)
 	objcopy_command = flag.String("objcopy_command", "mips-elf-objcopy", objcopy_command_text)
 	font_filename   = flag.String("font_filename", "font", "Font filename")
 )
@@ -71,13 +70,12 @@ Uname Is passed to cpp(1) for use during its invocation.
 
 func main() {
 	flag.Parse()
-
 	f, err := os.Open(flag.Arg(0))
 	if err != nil {
 		panic(err)
 	}
-
-	spec, err := spicy.ParseSpec(bufio.NewReader(f))
+	preprocessed, err := spicy.PreprocessSpec(f, *cpp_command)
+	spec, err := spicy.ParseSpec(preprocessed)
 	if err != nil {
 		panic(err)
 	}

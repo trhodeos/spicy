@@ -123,7 +123,7 @@ func LinkSpec(w *Wave, ld_command string) (string, error) {
 		return "", err
 	}
 	output_path := fmt.Sprintf("%s.out", name)
-	err = RunCmd(ld_command, "-G 0", "-S", "-nostartfiles", "-nodefaultlibs", "-nostdinc", "-dT", ld_path, "-o", output_path, "-M")
+	err = RunCmd(ld_command, "-G 0", "-S", "-noinhibit-exec", "-nostartfiles", "-nodefaultlibs", "-nostdinc", "-dT", ld_path, "-o", output_path, "-M")
 	if err != nil {
 		return "", err
 	}
