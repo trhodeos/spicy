@@ -1,8 +1,8 @@
 package main
 
 import (
-	"flag"
 	"fmt"
+	flag "github.com/ogier/pflag"
 	"github.com/trhodeos/n64rom"
 	"github.com/trhodeos/spicy"
 	"io/ioutil"
@@ -45,16 +45,16 @@ var includeFlags arrayFlags
 var undefineFlags arrayFlags
 
 var (
-	verbose                           = flag.Bool("d", false, verbose_text)
-	link_editor_verbose               = flag.Bool("m", false, verbose_link_editor_text)
-	disable_overlapping_section_check = flag.Bool("o", false, disable_overlapping_section_check_text)
-	romsize_mbits                     = flag.Int("s", -1, romsize_text)
-	filldata                          = flag.Int("f", 0x0, filldata_text)
-	bootstrap_filename                = flag.String("b", "Boot", bootstrap_filename_text)
-	header_filename                   = flag.String("h", "romheader", header_filename_text)
-	pif_bootstrap_filename            = flag.String("p", "pif2Boot", pif_bootstrap_filename_text)
-	rom_image_file                    = flag.String("r", "rom.n64", rom_image_file_text)
-	elf_file                          = flag.String("e", "rom.out", rom_image_file_text)
+	verbose                           = flag.BoolP("verbose", "d", false, verbose_text)
+	link_editor_verbose               = flag.BoolP("verbose_linking", "m", false, verbose_link_editor_text)
+	disable_overlapping_section_check = flag.BoolP("disable_overlapping_section_checks", "o", false, disable_overlapping_section_check_text)
+	romsize_mbits                     = flag.IntP("romsize", "s", -1, romsize_text)
+	filldata                          = flag.IntP("filldata_byte", "f", 0x0, filldata_text)
+	bootstrap_filename                = flag.StringP("bootstrap_file", "b", "Boot", bootstrap_filename_text)
+	header_filename                   = flag.StringP("romheader_file", "h", "romheader", header_filename_text)
+	pif_bootstrap_filename            = flag.StringP("pif2boot_file", "p", "pif2Boot", pif_bootstrap_filename_text)
+	rom_image_file                    = flag.StringP("rom_name", "r", "rom.n64", rom_image_file_text)
+	elf_file                          = flag.StringP("rom_elf_name", "e", "rom.out", rom_image_file_text)
 
 	// Non-standard options. Should all be optional.
 	ld_command      = flag.String("ld_command", "mips64-elf-ld", ld_command_text)
@@ -81,9 +81,9 @@ Uname Is passed to cpp(1) for use during its invocation.
 */
 
 func main() {
-	flag.Var(&defineFlags, "D", defines_text)
-	flag.Var(&includeFlags, "I", includes_text)
-	flag.Var(&undefineFlags, "U", undefine_text)
+	flag.VarP(&defineFlags, "define", "D", defines_text)
+	flag.VarP(&includeFlags, "include", "I", includes_text)
+	flag.VarP(&undefineFlags, "undefine", "U", undefine_text)
 	flag.Parse()
 	f, err := os.Open(flag.Arg(0))
 	if err != nil {

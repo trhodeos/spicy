@@ -2,12 +2,14 @@ package spicy
 
 import (
 	"bytes"
-	"github.com/golang/glog"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"text/template"
 )
+
+var log = logrus.New()
 
 func createEntrySource(bootSegment *Segment) (string, error) {
 	t := `
@@ -37,31 +39,31 @@ _start:
 }
 
 func generateEntryScript(w *Wave) (string, error) {
-	glog.V(1).Infoln("Starting to generate entry script.")
+	log.Debug("Starting to generate entry script.")
 	content, err := createEntrySource(w.GetBootSegment())
 	if err != nil {
 		return "", err
 	}
-	glog.V(2).Infoln("Entry script generated:\n", content)
+	log.Debugf("Entry script generated:\n%s", content)
 	tmpfile, err := ioutil.TempFile("", "entry-script")
 	path, err := filepath.Abs(tmpfile.Name())
 	if err != nil {
 		return "", err
 	}
-	glog.V(1).Infoln("Writing script to", path)
+	log.Debug("Writing script to", path)
 	if _, err := tmpfile.Write([]byte(content)); err != nil {
 		return "", err
 	}
 	if err := tmpfile.Close(); err != nil {
 		return "", err
 	}
-	glog.V(1).Infoln("Script written.")
+	log.Debug("Script written.")
 	return path, nil
 }
 
 func CreateEntryBinary(w *Wave, as_command string) (*os.File, error) {
 	name := w.Name
-	glog.Infof("Creating entry for \"%s\".", name)
+	log.Infof("Creating entry for \"%s\".", name)
 	entry_source_path, err := generateEntryScript(w)
 	if err != nil {
 		return nil, err

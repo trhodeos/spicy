@@ -3,12 +3,14 @@ package spicy
 import (
 	"bytes"
 	"fmt"
-	"github.com/golang/glog"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"text/template"
 )
+
+var log = logrus.New()
 
 func createLdScript(w *Wave) (string, error) {
 	t := `
@@ -93,31 +95,31 @@ SECTIONS {
 }
 
 func generateLdScript(w *Wave) (string, error) {
-	glog.V(1).Infoln("Starting to generate ld script.")
+	log.Infoln("Starting to generate ld script.")
 	content, err := createLdScript(w)
 	if err != nil {
 		return "", err
 	}
-	glog.V(2).Infoln("Ld script generated:\n", content)
+	log.Debugln("Ld script generated:\n", content)
 	tmpfile, err := ioutil.TempFile("", "ld-script")
 	path, err := filepath.Abs(tmpfile.Name())
 	if err != nil {
 		return "", err
 	}
-	glog.V(1).Infoln("Writing script to", path)
+	log.Debugln("Writing script to", path)
 	if _, err := tmpfile.Write([]byte(content)); err != nil {
 		return "", err
 	}
 	if err := tmpfile.Close(); err != nil {
 		return "", err
 	}
-	glog.V(1).Infoln("Script written.")
+	log.Debugln("Script written.")
 	return path, nil
 }
 
 func LinkSpec(w *Wave, ld_command string) (string, error) {
 	name := w.Name
-	glog.Infof("Linking spec \"%s\".", name)
+	log.Infof("Linking spec \"%s\".", name)
 	ld_path, err := generateLdScript(w)
 	if err != nil {
 		return "", err
