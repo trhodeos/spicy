@@ -245,8 +245,19 @@ func convertAstToSpec(s SpecAst) (*Spec, error) {
 	return out, nil
 }
 
-func PreprocessSpec(file io.Reader, gcc_command string) (io.Reader, error) {
-	return RunCmdReturnStdout(gcc_command, file, "-P", "-E", "-U_LANGUAGE_C", "-D_LANGUAGE_SPEC", "-")
+func PreprocessSpec(file io.Reader, gcc_command string, includeFlags []string, defineFlags []string, undefineFlags []string) (io.Reader, error) {
+	args := []string{"-P", "-E", "-U_LANGUAGE_C", "-D_LANGUAGE_SPEC", "-"}
+	for _, include := range includeFlags {
+		args = append(args, fmt.Sprintf("-I%s", include))
+	}
+	for _, define := range defineFlags {
+		args = append(args, fmt.Sprintf("-D%s", define))
+	}
+	for _, undefine := range undefineFlags {
+		args = append(args, fmt.Sprintf("-U%s", undefine))
+	}
+
+	return RunCmdReturnStdout(gcc_command, file, args...)
 }
 
 func ParseSpec(r io.Reader) (*Spec, error) {

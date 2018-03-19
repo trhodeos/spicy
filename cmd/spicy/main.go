@@ -29,10 +29,22 @@ const (
 	objcopy_command_text                   = "objcopy command to use"
 )
 
+type arrayFlags []string
+
+func (i *arrayFlags) String() string {
+	return "List of strings"
+}
+
+func (i *arrayFlags) Set(value string) error {
+	*i = append(*i, value)
+	return nil
+}
+
+var defineFlags arrayFlags
+var includeFlags arrayFlags
+var undefineFlags arrayFlags
+
 var (
-	defines                           = flag.String("D", "", defines_text)
-	includes                          = flag.String("I", "", includes_text)
-	undefine                          = flag.String("U", "", undefine_text)
 	verbose                           = flag.Bool("d", false, verbose_text)
 	link_editor_verbose               = flag.Bool("m", false, verbose_link_editor_text)
 	disable_overlapping_section_check = flag.Bool("o", false, disable_overlapping_section_check_text)
@@ -41,8 +53,8 @@ var (
 	bootstrap_filename                = flag.String("b", "Boot", bootstrap_filename_text)
 	header_filename                   = flag.String("h", "romheader", header_filename_text)
 	pif_bootstrap_filename            = flag.String("p", "pif2Boot", pif_bootstrap_filename_text)
-	rom_image_file                    = flag.String("r", "output.n64", rom_image_file_text)
-	elf_file                          = flag.String("e", "output.out", rom_image_file_text)
+	rom_image_file                    = flag.String("r", "rom.n64", rom_image_file_text)
+	elf_file                          = flag.String("e", "rom.out", rom_image_file_text)
 
 	// Non-standard options. Should all be optional.
 	ld_command      = flag.String("ld_command", "mips64-elf-ld", ld_command_text)
@@ -69,12 +81,15 @@ Uname Is passed to cpp(1) for use during its invocation.
 */
 
 func main() {
+	flag.Var(&defineFlags, "D", defines_text)
+	flag.Var(&includeFlags, "I", includes_text)
+	flag.Var(&undefineFlags, "U", undefine_text)
 	flag.Parse()
 	f, err := os.Open(flag.Arg(0))
 	if err != nil {
 		panic(err)
 	}
-	preprocessed, err := spicy.PreprocessSpec(f, *cpp_command)
+	preprocessed, err := spicy.PreprocessSpec(f, *cpp_command, includeFlags, defineFlags, undefineFlags)
 	spec, err := spicy.ParseSpec(preprocessed)
 	if err != nil {
 		panic(err)
@@ -99,7 +114,7 @@ func main() {
 		}
 		defer binarized_object_file.Close()
 
-		out, err := os.Create(fmt.Sprintf("%s.n64", w.Name))
+		out, err := os.Create(fmt.Sprintf("%s.n64", *rom_image_file))
 		if err != nil {
 			panic(err)
 		}
