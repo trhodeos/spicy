@@ -2,14 +2,12 @@ package spicy
 
 import (
 	"bytes"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"text/template"
 )
-
-var log = logrus.New()
 
 func createEntrySource(bootSegment *Segment) (string, error) {
 	t := `

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	flag "github.com/ogier/pflag"
+	log "github.com/sirupsen/logrus"
 	"github.com/trhodeos/n64rom"
 	"github.com/trhodeos/spicy"
 	"io/ioutil"
@@ -85,6 +86,11 @@ func main() {
 	flag.VarP(&includeFlags, "include", "I", includes_text)
 	flag.VarP(&undefineFlags, "undefine", "U", undefine_text)
 	flag.Parse()
+	if *verbose {
+		log.SetLevel(log.DebugLevel)
+	} else {
+		log.SetLevel(log.WarnLevel)
+	}
 	f, err := os.Open(flag.Arg(0))
 	if err != nil {
 		panic(err)

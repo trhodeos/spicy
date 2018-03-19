@@ -3,14 +3,12 @@ package spicy
 import (
 	"bytes"
 	"fmt"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"text/template"
 )
-
-var log = logrus.New()
 
 func createLdScript(w *Wave) (string, error) {
 	t := `

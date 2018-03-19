@@ -2,14 +2,11 @@ package spicy
 
 import (
 	"bytes"
-	"fmt"
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"os/exec"
 	"strings"
 )
-
-var log = logrus.New()
 
 func RunCmd(command string, args ...string) error {
 	log.Infof("About to run %s %s\n", command, strings.Join(args, " "))
