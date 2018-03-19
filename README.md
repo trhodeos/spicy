@@ -5,11 +5,5 @@ n64-compatible rom. This binary should eventually be a drop in, multiplatform
 replacement for mild.exe.
 
 ## Usage
-Get the binary:
 
-```shell
-go get github.com/trhodeos/spicy
-```
-
-TODO: figure out what it takes to distribute a go binary..
-
+For information about how to use, see http://github.com/trhodeos/modern-n64sdk.
