@@ -246,7 +246,7 @@ func convertAstToSpec(s SpecAst) (*Spec, error) {
 }
 
 func PreprocessSpec(file io.Reader, gcc_command string, includeFlags []string, defineFlags []string, undefineFlags []string) (io.Reader, error) {
-	args := []string{"-P", "-E", "-U_LANGUAGE_C", "-D_LANGUAGE_SPEC", "-"}
+	args := []string{"-P", "-E", "-U_LANGUAGE_C", "-D_LANGUAGE_MAKEROM", "-"}
 	for _, include := range includeFlags {
 		args = append(args, fmt.Sprintf("-I%s", include))
 	}
