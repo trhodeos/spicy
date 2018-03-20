@@ -9,6 +9,8 @@ import (
 	"text/template"
 )
 
+var compileArgs = []string{"-march=vr4300", "-mtune=vr4300", "-mgp32", "-mfp32", "-non_shared"}
+
 func createEntrySource(bootSegment *Segment) (string, error) {
 	t := `
 	.text
@@ -59,16 +61,17 @@ func generateEntryScript(w *Wave) (string, error) {
 	return path, nil
 }
 
-func CreateEntryBinary(w *Wave, as_command string) (*os.File, error) {
+func CreateEntryBinary(w *Wave, as Runner) (*os.File, error) {
 	name := w.Name
 	log.Infof("Creating entry for \"%s\".", name)
-	entry_source_path, err := generateEntryScript(w)
+	entrySourcePath, err := generateEntryScript(w)
 	if err != nil {
 		return nil, err
 	}
-	err = RunCmd(as_command, "-march=vr4300", "-mtune=vr4300", "-mgp32", "-mfp32", "-non_shared", entry_source_path)
+	_, err = as.Run( /* stdin=*/ nil, append(compileArgs, entrySourcePath))
 	if err != nil {
 		return nil, err
 	}
+	// TODO(trhodeos): Make this not nil.
 	return nil, err
 }

@@ -10,6 +10,8 @@ import (
 	"text/template"
 )
 
+var ldArgs = []string{"-G 0", "-S", "-noinhibit-exec", "-nostartfiles", "-nodefaultlibs", "-nostdinc", "-M"}
+
 func createLdScript(w *Wave) (string, error) {
 	t := `
 ENTRY(_start)
@@ -115,7 +117,7 @@ func generateLdScript(w *Wave) (string, error) {
 	return path, nil
 }
 
-func LinkSpec(w *Wave, ld_command string) (string, error) {
+func LinkSpec(w *Wave, ldRunner Runner) (string, error) {
 	name := w.Name
 	log.Infof("Linking spec \"%s\".", name)
 	ld_path, err := generateLdScript(w)
@@ -123,22 +125,18 @@ func LinkSpec(w *Wave, ld_command string) (string, error) {
 		return "", err
 	}
 	output_path := fmt.Sprintf("%s.out", name)
-	err = RunCmd(ld_command, "-G 0", "-S", "-noinhibit-exec", "-nostartfiles", "-nodefaultlibs", "-nostdinc", "-dT", ld_path, "-o", output_path, "-M")
+	_, err = ldRunner.Run( /* stdin=*/ nil, append(ldArgs, "-dT", ld_path, "-o", output_path))
 	if err != nil {
 		return "", err
 	}
 	return output_path, err
 }
 
-func BinarizeObject(obj_path string, objcopy_command string) (*os.File, error) {
-	output_bin := fmt.Sprintf("%s.bin", obj_path)
-	err := RunCmd(objcopy_command, "-O", "binary", obj_path, output_bin)
+func BinarizeObject(objPath string, objcopyRunner Runner) (*os.File, error) {
+	outputBin := fmt.Sprintf("%s.bin", objPath)
+	_, err := objcopyRunner.Run( /* stdin=*/ nil, []string{"-O", "binary", objPath, outputBin})
 	if err != nil {
 		return nil, err
 	}
-	file, err := os.Open(output_bin)
-	if err != nil {
-		return nil, err
-	}
-	return file, err
+	return os.Open(outputBin)
 }

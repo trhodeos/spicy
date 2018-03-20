@@ -2,39 +2,37 @@ package spicy
 
 import (
 	"bytes"
+	"errors"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"os/exec"
 	"strings"
 )
 
-func RunCmd(command string, args ...string) error {
-	log.Infof("About to run %s %s\n", command, strings.Join(args, " "))
-	cmd := exec.Command(command, args...)
-	var out bytes.Buffer
-	var errout bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &errout
-	err := cmd.Run()
-	log.Debug(command, " stdout: ", out.String())
-	if err != nil {
-		log.Error("Error running ", command, ". Stderr output: ", errout.String())
-	}
-	return err
+type Runner interface {
+	Run(r io.Reader, args []string) (io.Reader, error)
 }
 
-func RunCmdReturnStdout(command string, stdin io.Reader, args ...string) (io.Reader, error) {
-	log.Infof("About to run %s %s\n", command, strings.Join(args, " "))
-	cmd := exec.Command(command, args...)
+type ExecRunner struct {
+	command string
+}
+
+func NewRunner(cmd string) ExecRunner {
+	return ExecRunner{command: cmd}
+}
+
+func (e ExecRunner) Run(r io.Reader, args []string) (io.Reader, error) {
+	log.Infof("About to run %s %s\n", e.command, strings.Join(args, " "))
+	cmd := exec.Command(e.command, args...)
 	var out bytes.Buffer
 	var errout bytes.Buffer
 	cmd.Stdout = &out
 	cmd.Stderr = &errout
-	cmd.Stdin = stdin
 	err := cmd.Run()
-	log.Debug(command, " stdout: ", out.String())
+	log.Debug("stdout: ", out.String())
 	if err != nil {
-		log.Error("Error running ", command, ". Stderr output: ", errout.String())
+		return nil, errors.New(fmt.Sprintf("Error running '%s': %s", e.command, errout.String()))
 	}
-	return strings.NewReader(out.String()), nil
+	return &out, nil
 }

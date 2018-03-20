@@ -245,7 +245,7 @@ func convertAstToSpec(s SpecAst) (*Spec, error) {
 	return out, nil
 }
 
-func PreprocessSpec(file io.Reader, gcc_command string, includeFlags []string, defineFlags []string, undefineFlags []string) (io.Reader, error) {
+func PreprocessSpec(file io.Reader, gcc Runner, includeFlags []string, defineFlags []string, undefineFlags []string) (io.Reader, error) {
 	args := []string{"-P", "-E", "-U_LANGUAGE_C", "-D_LANGUAGE_MAKEROM", "-"}
 	for _, include := range includeFlags {
 		args = append(args, fmt.Sprintf("-I%s", include))
@@ -257,7 +257,7 @@ func PreprocessSpec(file io.Reader, gcc_command string, includeFlags []string, d
 		args = append(args, fmt.Sprintf("-U%s", undefine))
 	}
 
-	return RunCmdReturnStdout(gcc_command, file, args...)
+	return gcc.Run(file, args)
 }
 
 func ParseSpec(r io.Reader) (*Spec, error) {

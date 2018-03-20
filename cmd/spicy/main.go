@@ -95,7 +95,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	preprocessed, err := spicy.PreprocessSpec(f, *cpp_command, includeFlags, defineFlags, undefineFlags)
+	gcc := spicy.NewRunner(*cpp_command)
+	ld := spicy.NewRunner(*ld_command)
+	as := spicy.NewRunner(*as_command)
+	objcopy := spicy.NewRunner(*objcopy_command)
+	preprocessed, err := spicy.PreprocessSpec(f, gcc, includeFlags, defineFlags, undefineFlags)
 	spec, err := spicy.ParseSpec(preprocessed)
 	if err != nil {
 		panic(err)
@@ -105,8 +109,8 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		entry, err := spicy.CreateEntryBinary(w, *as_command)
-		linked_object_path, err := spicy.LinkSpec(w, *ld_command)
+		entry, err := spicy.CreateEntryBinary(w, as)
+		linked_object_path, err := spicy.LinkSpec(w, ld)
 		if err != nil {
 			panic(err)
 		}
@@ -114,7 +118,7 @@ func main() {
 			panic(err)
 		}
 		defer entry.Close()
-		binarized_object_file, err := spicy.BinarizeObject(linked_object_path, *objcopy_command)
+		binarized_object_file, err := spicy.BinarizeObject(linked_object_path, objcopy)
 		if err != nil {
 			panic(err)
 		}
