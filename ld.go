@@ -2,9 +2,11 @@ package spicy
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
+	"io"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"text/template"
@@ -12,7 +14,7 @@ import (
 
 var ldArgs = []string{"-G 0", "-S", "-noinhibit-exec", "-nostartfiles", "-nodefaultlibs", "-nostdinc", "-M"}
 
-func createLdScript(w *Wave) (string, error) {
+func createLdScript(w *Wave) (io.Reader, error) {
 	t := `
 ENTRY(_start)
 MEMORY {
@@ -87,56 +89,39 @@ SECTIONS {
 `
 	tmpl, err := template.New("test").Parse(t)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	b := &bytes.Buffer{}
 	err = tmpl.Execute(b, w)
-	return b.String(), err
+	if err == nil {
+		log.Debugln("Ld script generated:\n", b.String())
+	}
+	return b, err
 }
 
-func generateLdScript(w *Wave) (string, error) {
-	log.Infoln("Starting to generate ld script.")
-	content, err := createLdScript(w)
-	if err != nil {
-		return "", err
-	}
-	log.Debugln("Ld script generated:\n", content)
-	tmpfile, err := ioutil.TempFile("", "ld-script")
-	path, err := filepath.Abs(tmpfile.Name())
-	if err != nil {
-		return "", err
-	}
-	log.Debugln("Writing script to", path)
-	if _, err := tmpfile.Write([]byte(content)); err != nil {
-		return "", err
-	}
-	if err := tmpfile.Close(); err != nil {
-		return "", err
-	}
-	log.Debugln("Script written.")
-	return path, nil
-}
-
-func LinkSpec(w *Wave, ldRunner Runner) (string, error) {
+func LinkSpec(w *Wave, ld Runner, entry io.Reader) (io.Reader, error) {
 	name := w.Name
 	log.Infof("Linking spec \"%s\".", name)
-	ld_path, err := generateLdScript(w)
-	if err != nil {
-		return "", err
-	}
-	output_path := fmt.Sprintf("%s.out", name)
-	_, err = ldRunner.Run( /* stdin=*/ nil, append(ldArgs, "-dT", ld_path, "-o", output_path))
-	if err != nil {
-		return "", err
-	}
-	return output_path, err
-}
-
-func BinarizeObject(objPath string, objcopyRunner Runner) (*os.File, error) {
-	outputBin := fmt.Sprintf("%s.bin", objPath)
-	_, err := objcopyRunner.Run( /* stdin=*/ nil, []string{"-O", "binary", objPath, outputBin})
+	ldscript, err := createLdScript(w)
 	if err != nil {
 		return nil, err
 	}
-	return os.Open(outputBin)
+	outputPath := fmt.Sprintf("%s.out", name)
+	mappedInputs := map[string]io.Reader{
+		"ld-script": ldscript,
+	}
+	return NewMappedFileRunner(ld, mappedInputs, outputPath).Run( /* stdin=*/ nil, append(ldArgs, "-dT", "ld-script", "-o", outputPath))
+}
+func TempFileName(suffix string) string {
+	randBytes := make([]byte, 16)
+	rand.Read(randBytes)
+	return filepath.Join(os.TempDir(), hex.EncodeToString(randBytes)+suffix)
+}
+
+func BinarizeObject(obj io.Reader, objcopy Runner) (io.Reader, error) {
+	outputBin := TempFileName(".bin")
+	mappedInputs := map[string]io.Reader{
+		"objFile": obj,
+	}
+	return NewMappedFileRunner(objcopy, mappedInputs, outputBin).Run( /* stdin=*/ nil, []string{"-O", "binary", "objFile", outputBin})
 }

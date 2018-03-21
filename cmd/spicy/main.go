@@ -110,19 +110,17 @@ func main() {
 			panic(err)
 		}
 		entry, err := spicy.CreateEntryBinary(w, as)
-		linked_object_path, err := spicy.LinkSpec(w, ld)
 		if err != nil {
 			panic(err)
 		}
+		linked_object, err := spicy.LinkSpec(w, ld, entry)
 		if err != nil {
 			panic(err)
 		}
-		defer entry.Close()
-		binarized_object_file, err := spicy.BinarizeObject(linked_object_path, objcopy)
+		binarized_object, err := spicy.BinarizeObject(linked_object, objcopy)
 		if err != nil {
 			panic(err)
 		}
-		defer binarized_object_file.Close()
 
 		out, err := os.Create(fmt.Sprintf("%s.n64", *rom_image_file))
 		if err != nil {
@@ -133,7 +131,7 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		binarized_object_bytes, err := ioutil.ReadAll(binarized_object_file)
+		binarized_object_bytes, err := ioutil.ReadAll(binarized_object)
 		if err != nil {
 			panic(err)
 		}

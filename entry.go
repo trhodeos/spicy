@@ -4,7 +4,6 @@ import (
 	"bytes"
 	log "github.com/sirupsen/logrus"
 	"io"
-	"os"
 	"text/template"
 )
 
@@ -36,17 +35,12 @@ _start:
 	return b, err
 }
 
-func CreateEntryBinary(w *Wave, as Runner) (*os.File, error) {
+func CreateEntryBinary(w *Wave, as Runner) (io.Reader, error) {
 	name := w.Name
 	log.Infof("Creating entry for \"%s\".", name)
 	entrySource, err := createEntrySource(w.GetBootSegment())
 	if err != nil {
 		return nil, err
 	}
-	_, err = as.Run(entrySource, append(compileArgs, "-"))
-	if err != nil {
-		return nil, err
-	}
-	// TODO(trhodeos): Make this not nil.
-	return nil, err
+	return NewOutputFileRunner(as, "a.out").Run(entrySource, append(compileArgs, "-"))
 }
