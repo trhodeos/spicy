@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	flag "github.com/ogier/pflag"
 	log "github.com/sirupsen/logrus"
 	"github.com/trhodeos/n64rom"
@@ -95,6 +94,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer f.Close()
+
 	gcc := spicy.NewRunner(*cpp_command)
 	ld := spicy.NewRunner(*ld_command)
 	as := spicy.NewRunner(*as_command)
@@ -106,9 +107,6 @@ func main() {
 	}
 
 	for _, w := range spec.Waves {
-		if err != nil {
-			panic(err)
-		}
 		entry, err := spicy.CreateEntryBinary(w, as)
 		if err != nil {
 			panic(err)
@@ -122,7 +120,7 @@ func main() {
 			panic(err)
 		}
 
-		out, err := os.Create(fmt.Sprintf("%s.n64", *rom_image_file))
+		out, err := os.Create(*rom_image_file)
 		if err != nil {
 			panic(err)
 		}

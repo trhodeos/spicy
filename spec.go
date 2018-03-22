@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/alecthomas/participle"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"os"
 	"path/filepath"
@@ -261,6 +262,7 @@ func PreprocessSpec(file io.Reader, gcc Runner, includeFlags []string, defineFla
 }
 
 func ParseSpec(r io.Reader) (*Spec, error) {
+	log.Infof("Parsing spec")
 	parser, err := participle.Build(&SpecAst{}, nil)
 	if err != nil {
 		return nil, err
@@ -271,7 +273,11 @@ func ParseSpec(r io.Reader) (*Spec, error) {
 	if err != nil {
 		return nil, err
 	}
-	return convertAstToSpec(*specAst)
+	out, err := convertAstToSpec(*specAst)
+	if err == nil {
+		log.Debugf("Parsed: %v", out)
+	}
+	return out, err
 }
 
 func (w *Wave) checkValidity() error {

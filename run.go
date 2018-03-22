@@ -30,6 +30,7 @@ func (e ExecRunner) Run(r io.Reader, args []string) (io.Reader, error) {
 	cmd := exec.Command(e.command, args...)
 	var out bytes.Buffer
 	var errout bytes.Buffer
+	cmd.Stdin = r
 	cmd.Stdout = &out
 	cmd.Stderr = &errout
 	err := cmd.Run()
@@ -76,7 +77,7 @@ func writeTempFile(r io.Reader, prefix string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	log.Debugln("Writing file for prefix %s to %s", prefix, path)
+	log.Debugf("Writing file for prefix %s to %s", prefix, path)
 	_, err = io.Copy(tmpfile, r)
 	if err != nil {
 		return "", err
@@ -100,7 +101,7 @@ func (e MappedFileRunner) Run(r io.Reader, args []string) (io.Reader, error) {
 			newArgs[i] = args[i]
 		}
 	}
-	_, err := e.runner.Run(r, args)
+	_, err := e.runner.Run(r, newArgs)
 	if err != nil {
 		return nil, err
 	}
