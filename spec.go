@@ -13,7 +13,7 @@ import (
 
 type Constant struct {
 	Symbol string `  @Ident`
-	Int    int    `| @Int`
+	Int    uint64 `| @Int`
 }
 
 type FlagAst struct {
@@ -41,7 +41,7 @@ type MinSegment struct {
 // Only one of these values will be set.
 type Value struct {
 	String        string      `  @String`
-	Int           int         `| @Int`
+	Int           uint64      `| @Int`
 	Flags         []*FlagAst  `| @@ { @@ }`
 	ConstantValue *Summand    `| @@`
 	MaxSegment    *MaxSegment `| @@`
@@ -92,12 +92,12 @@ type Positioning struct {
 	AfterSegment    string
 	AfterMinSegment [2]string
 	AfterMaxSegment [2]string
-	Address         int
+	Address         uint64
 }
 
 type StackInfo struct {
 	Start  string
-	Offset int
+	Offset uint64
 }
 
 type Segment struct {
@@ -106,8 +106,8 @@ type Segment struct {
 	StackInfo   *StackInfo
 	Positioning Positioning
 	Entry       *string
-	MaxSize     int
-	Align       int
+	MaxSize     uint64
+	Align       uint64
 	Flags       Flags
 }
 
