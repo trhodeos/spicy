@@ -106,6 +106,10 @@ func main() {
 		panic(err)
 	}
 
+	rom, err := n64rom.NewBlankRomFile(byte(*filldata))
+	if err != nil {
+		panic(err)
+	}
 	for _, w := range spec.Waves {
 		entry, err := spicy.CreateEntryBinary(w, as)
 		if err != nil {
@@ -120,15 +124,6 @@ func main() {
 			panic(err)
 		}
 
-		out, err := os.Create(*rom_image_file)
-		if err != nil {
-			panic(err)
-		}
-		defer out.Close()
-		rom, err := n64rom.NewBlankRomFile(byte(*filldata))
-		if err != nil {
-			panic(err)
-		}
 		binarized_object_bytes, err := ioutil.ReadAll(binarized_object)
 		if err != nil {
 			panic(err)
@@ -137,16 +132,25 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		if *romsize_mbits > 0 {
-			minSize := int64(1000000 * *romsize_mbits / 8)
-			_, err := out.WriteAt([]byte{0}, minSize)
-			if err != nil {
-				panic(err)
-			}
-		}
-		_, err = rom.Save(out)
+	}
+	out, err := os.Create(*rom_image_file)
+	if err != nil {
+		panic(err)
+	}
+	// Pad the rom if necessary.
+	if *romsize_mbits > 0 {
+		minSize := int64(1000000 * *romsize_mbits / 8)
+		_, err := out.WriteAt([]byte{0}, minSize)
 		if err != nil {
 			panic(err)
 		}
+	}
+	_, err = rom.Save(out)
+	if err != nil {
+		panic(err)
+	}
+	err = out.Close()
+	if err != nil {
+		panic(err)
 	}
 }
