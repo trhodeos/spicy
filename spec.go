@@ -214,7 +214,7 @@ func convertWaveAst(s *WaveAst, segments map[string]*Segment) (*Wave, error) {
 
 func (w *Wave) updateWithConstants() {
 	for _, seg := range w.ObjectSegments {
-		if seg.Flags.Boot {
+		if seg.Flags.Boot && seg.Positioning.Address == 0 {
 			seg.Positioning.Address = 0x80000450
 		}
 	}
