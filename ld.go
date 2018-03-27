@@ -47,7 +47,7 @@ SECTIONS {
               {{.}} (.data)
             {{end}}
             {{range $seg.Includes -}}
-              {{.}} (.rodata)
+              {{.}} (.rodata*)
             {{end}}
             {{range $seg.Includes -}}
               {{.}} (.sdata)
