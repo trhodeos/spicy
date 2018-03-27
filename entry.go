@@ -32,6 +32,7 @@ _start:
 	}
 	b := &bytes.Buffer{}
 	err = tmpl.Execute(b, bootSegment)
+	log.Debugf("Created entry script:\n%s", b.String())
 	return b, err
 }
 
