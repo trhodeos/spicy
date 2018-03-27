@@ -129,7 +129,7 @@ func convertSegmentAst(s *SegmentAst) (*Segment, error) {
 			seg.Name = statement.Value.String
 			break
 		case "address":
-			seg.Positioning.Address = statement.Value.Int
+			seg.Positioning.Address = SignExtend(statement.Value.Int)
 			break
 		case "after":
 			if statement.Value.ConstantValue != nil {
@@ -167,7 +167,7 @@ func convertSegmentAst(s *SegmentAst) (*Segment, error) {
 			}
 			break
 		case "number":
-			seg.Positioning.Address = statement.Value.Int * 0x1000000
+			seg.Positioning.Address = SignExtend(statement.Value.Int * 0x1000000)
 			break
 		case "entry":
 			seg.Entry = &statement.Value.ConstantValue.Lhs.Symbol
@@ -215,7 +215,7 @@ func convertWaveAst(s *WaveAst, segments map[string]*Segment) (*Wave, error) {
 func (w *Wave) updateWithConstants() {
 	for _, seg := range w.ObjectSegments {
 		if seg.Flags.Boot && seg.Positioning.Address == 0 {
-			seg.Positioning.Address = 0x80000450
+			seg.Positioning.Address = SignExtend(0x80000450)
 		}
 	}
 }
