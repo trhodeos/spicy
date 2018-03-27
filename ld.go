@@ -31,54 +31,54 @@ SECTIONS {
 
     _RomSize = 0x1050;
     _RomStart = _RomSize;
-    {{range $index, $seg := .ObjectSegments -}}
-    _{{$seg.Name}}SegmentRomStart = _RomSize;
-    ..{{$seg.Name}} {{$seg.Positioning.Address}} : AT(_RomSize)
+    {{range .ObjectSegments -}}
+    _{{.Name}}SegmentRomStart = _RomSize;
+    ..{{.Name}} {{.Positioning.Address}} : AT(_RomSize)
     {
-        _{{$seg.Name}}SegmentStart = .;
+        _{{.Name}}SegmentStart = .;
         . = ALIGN(0x10);
-        _{{$seg.Name}}SegmentTextStart = .;
-            {{range $seg.Includes -}}
+        _{{.Name}}SegmentTextStart = .;
+            {{range .Includes -}}
               {{.}} (.text)
             {{end}}
-        _{{$seg.Name}}SegmentTextEnd = .;
-        _{{$seg.Name}}SegmentDataStart = .;
-            {{range $seg.Includes -}}
+        _{{.Name}}SegmentTextEnd = .;
+        _{{.Name}}SegmentDataStart = .;
+            {{range .Includes -}}
               {{.}} (.data)
             {{end}}
-            {{range $seg.Includes -}}
+            {{range .Includes -}}
               {{.}} (.rodata*)
             {{end}}
-            {{range $seg.Includes -}}
+            {{range .Includes -}}
               {{.}} (.sdata)
             {{end}}
         . = ALIGN(0x10);
-        _{{$seg.Name}}SegmentDataEnd = .;
-    } > {{$seg.Name}}.RAM
-    _RomSize += ( _{{$seg.Name}}SegmentDataEnd - _{{$seg.Name}}SegmentTextStart );
-    _{{$seg.Name}}SegmentRomEnd = _RomSize;
+        _{{.Name}}SegmentDataEnd = .;
+    } > {{.Name}}.RAM
+    _RomSize += ( _{{.Name}}SegmentDataEnd - _{{.Name}}SegmentTextStart );
+    _{{.Name}}SegmentRomEnd = _RomSize;
 
-    ..{{$seg.Name}}.bss ADDR(..{{$seg.Name}}) + SIZEOF(..{{$seg.Name}}) (NOLOAD) :
+    ..{{.Name}}.bss ADDR(..{{.Name}}) + SIZEOF(..{{.Name}}) (NOLOAD) :
     {
         . = ALIGN(0x10);
-        _{{$seg.Name}}SegmentBssStart = .;
-            {{range $seg.Includes -}}
+        _{{.Name}}SegmentBssStart = .;
+            {{range .Includes -}}
               {{.}} (.sbss)
             {{end}}
-            {{range $seg.Includes -}}
+            {{range .Includes -}}
               {{.}} (.scommon)
             {{end}}
-            {{range $seg.Includes -}}
+            {{range .Includes -}}
               {{.}} (.bss)
             {{end}}
-            {{range $seg.Includes -}}
+            {{range .Includes -}}
               {{.}} (COMMON)
             {{end}}
         . = ALIGN(0x10);
-        _{{$seg.Name}}SegmentBssEnd = .;
-        _{{$seg.Name}}SegmentEnd = .;
-    } > {{$seg.Name}}.bss.RAM
-    _{{$seg.Name}}SegmentBssSize = ( _{{$seg.Name}}SegmentBssEnd - _{{$seg.Name}}SegmentBssStart );
+        _{{.Name}}SegmentBssEnd = .;
+        _{{.Name}}SegmentEnd = .;
+    } > {{.Name}}.bss.RAM
+    _{{.Name}}SegmentBssSize = ( _{{.Name}}SegmentBssEnd - _{{.Name}}SegmentBssStart );
   {{ end }}
   /DISCARD/ :
   {
