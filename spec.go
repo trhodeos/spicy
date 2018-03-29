@@ -133,14 +133,14 @@ func convertSegmentAst(s *SegmentAst) (*Segment, error) {
 			seg.Positioning.Address = SignExtend(statement.Value.Int)
 			break
 		case "after":
-			if statement.Value.ConstantValue != nil {
-				seg.Positioning.AfterSegment = statement.Value.ConstantValue.Lhs.Symbol
+			if statement.Value.String != "" {
+				seg.Positioning.AfterSegment = statement.Value.String
 			} else if statement.Value.MinSegment != nil {
 				seg.Positioning.AfterMinSegment = [2]string{statement.Value.MinSegment.First, statement.Value.MinSegment.Second}
 			} else if statement.Value.MaxSegment != nil {
 				seg.Positioning.AfterMaxSegment = [2]string{statement.Value.MaxSegment.First, statement.Value.MaxSegment.Second}
 			} else {
-				return nil, errors.New("some error")
+				return nil, errors.New("No value found in 'after' statement")
 			}
 			break
 		case "include":
