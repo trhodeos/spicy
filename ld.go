@@ -24,7 +24,7 @@ MEMORY {
     {{end}}
 }
 SECTIONS {
-    ..generatedStartEntry 0x80000400 : AT(0x1000)
+    ..generatedStartEntry 0xFFFFFFFF80000400 : AT(0xFFFFFFFF80000400)
     {
       a.out (.text)
     }
@@ -33,7 +33,7 @@ SECTIONS {
     _RomStart = _RomSize;
     {{range .ObjectSegments -}}
     _{{.Name}}SegmentRomStart = _RomSize;
-    ..{{.Name}} {{.Positioning.Address}} : AT(_RomSize)
+    ..{{.Name}} {{.Positioning.Address}} {{if .Positioning.NoLoad }} (NOLOAD) {{end}} :
     {
         _{{.Name}}SegmentStart = .;
         . = ALIGN(0x10);
