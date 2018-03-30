@@ -77,12 +77,21 @@ SECTIONS {
         . = ALIGN(0x10);
         _{{.Name}}SegmentBssEnd = .;
         _{{.Name}}SegmentEnd = .;
-    } > {{.Name}}.bss.RAM
+    } > ram AT > ram
     _{{.Name}}SegmentBssSize = ( _{{.Name}}SegmentBssEnd - _{{.Name}}SegmentBssStart );
   {{ end }}
   /DISCARD/ :
   {
         *(.MIPS.abiflags*)
+	*(.mdebug*)
+	*(.gnu.attributes*)
+	*(.pdr*)
+	*(.reginfo*)
+	*(.comment*)
+	*(.options*)
+	*(.gptab*)
+	*(.note*)
+	*(.rel.dyn*)
   }
   _RomEnd = _RomSize;
 }
