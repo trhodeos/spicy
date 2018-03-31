@@ -18,22 +18,18 @@ func createLdScript(w *Wave) (io.Reader, error) {
 	t := `
 ENTRY(_start)
 MEMORY {
-    {{range .ObjectSegments}}
-    {{.Name}}.RAM (RX) : ORIGIN = {{.Positioning.Address}}, LENGTH = 0x400000
-    {{.Name}}.bss.RAM (RW) : ORIGIN = {{.Positioning.Address}}, LENGTH = 0x400000
-    {{end}}
+    ram (RX) : ORIGIN = 0xFFFFFFFF80000400, LENGTH = 0x77FFFBFF
 }
 SECTIONS {
-    ..generatedStartEntry 0xFFFFFFFF80000400 : AT(0xFFFFFFFF80000400)
+    ..generatedStartEntry 0xFFFFFFFF80000400 :
     {
       a.out (.text)
-    }
-
+    } > ram
     _RomSize = 0x1050;
     _RomStart = _RomSize;
     {{range .ObjectSegments -}}
     _{{.Name}}SegmentRomStart = _RomSize;
-    ..{{.Name}} {{.Positioning.Address}} {{if .Positioning.NoLoad }} (NOLOAD) {{end}} :
+    ..{{.Name}} {{if not .Positioning.NoLoad }}  {{.Positioning.Address}} {{end}} :
     {
         _{{.Name}}SegmentStart = .;
         . = ALIGN(0x10);
@@ -54,7 +50,7 @@ SECTIONS {
             {{end}}
         . = ALIGN(0x10);
         _{{.Name}}SegmentDataEnd = .;
-    } > {{.Name}}.RAM
+    } > ram
     _RomSize += ( _{{.Name}}SegmentDataEnd - _{{.Name}}SegmentTextStart );
     _{{.Name}}SegmentRomEnd = _RomSize;
 
@@ -77,7 +73,7 @@ SECTIONS {
         . = ALIGN(0x10);
         _{{.Name}}SegmentBssEnd = .;
         _{{.Name}}SegmentEnd = .;
-    } AT> ram
+    } > ram
     _RomSize += ( _{{.Name}}SegmentBssEnd - _{{.Name}}SegmentBssStart );
     _{{.Name}}SegmentBssSize = ( _{{.Name}}SegmentBssEnd - _{{.Name}}SegmentBssStart );
   {{ end }}
