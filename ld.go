@@ -97,7 +97,7 @@ SECTIONS {
     {
         _{{.Name}}SegmentDataStart = .;
       {{range .Includes -}}
-      "{{.}}.o" (.data)
+      "{{.}}.o"
       {{end}}
         _{{.Name}}SegmentDataEnd = .;
     } > ram
@@ -157,4 +157,11 @@ func BinarizeObject(obj io.Reader, objcopy Runner) (io.Reader, error) {
 		"objFile": obj,
 	}
 	return NewMappedFileRunner(objcopy, mappedInputs, outputBin).Run( /* stdin=*/ nil, []string{"-O", "binary", "objFile", outputBin})
+}
+
+func CreateRawObjectWrapper(r io.Reader, outputName string, ld Runner) (io.Reader, error) {
+	mappedInputs := map[string]io.Reader{
+		"input": r,
+	}
+	return NewMappedFileRunner(ld, mappedInputs, outputName).Run( /* stdin=*/ nil, []string{"-r", "-b", "binary", "-o", outputName, "input"})
 }

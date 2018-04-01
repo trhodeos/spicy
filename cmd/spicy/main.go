@@ -111,6 +111,15 @@ func main() {
 		panic(err)
 	}
 	for _, w := range spec.Waves {
+		for _, seg := range w.RawSegments {
+			for _, include := range seg.Includes {
+				f, err := os.Open(include)
+				if err != nil {
+					panic(err)
+				}
+				spicy.CreateRawObjectWrapper(f, include+".o", ld)
+			}
+		}
 		entry, err := spicy.CreateEntryBinary(w, as)
 		if err != nil {
 			panic(err)
