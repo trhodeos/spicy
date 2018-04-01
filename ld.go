@@ -29,7 +29,21 @@ SECTIONS {
     _RomStart = _RomSize;
     {{range .ObjectSegments -}}
     _{{.Name}}SegmentRomStart = _RomSize;
-    ..{{.Name}} {{if ne .Positioning.AfterSegment ""}} ADDR(..{{.Positioning.AfterSegment}}.bss)  + SIZEOF(..{{.Positioning.AfterSegment}}.bss) {{else if not .Positioning.NoLoad}} {{.Positioning.Address}} {{end}} :
+    ..{{.Name}}
+    {{if ne .Positioning.AfterSegment ""}}
+        ADDR(..{{.Positioning.AfterSegment}}.bss) + SIZEOF(..{{.Positioning.AfterSegment}}.bss)
+    {{else if ne (index .Positioning.AfterMinSegment 0) ""}}
+        MIN(
+	  ADDR(..{{index .Positioning.AfterMinSegment 0}}.bss) + SIZEOF(..{{index .Positioning.AfterMinSegment 0}}.bss),
+          ADDR(..{{index .Positioning.AfterMinSegment 1}}.bss) + SIZEOF(..{{index .Positioning.AfterMinSegment 1}}.bss))
+    {{else if ne (index .Positioning.AfterMaxSegment 0) ""}}
+        MAX(
+	  ADDR(..{{index .Positioning.AfterMaxSegment 0}}.bss) + SIZEOF(..{{index .Positioning.AfterMaxSegment 0}}.bss),
+          ADDR(..{{index .Positioning.AfterMaxSegment 1}}.bss) + SIZEOF(..{{index .Positioning.AfterMaxSegment 1}}.bss))
+    {{else if not .Positioning.NoLoad}}
+      {{.Positioning.Address}}
+    {{end}}
+    :
     {
         _{{.Name}}SegmentStart = .;
         . = ALIGN(0x10);
