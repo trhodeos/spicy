@@ -276,9 +276,10 @@ func ParseSpec(r io.Reader) (*Spec, error) {
 		return nil, err
 	}
 	out, err := convertAstToSpec(*specAst)
-	if err == nil {
-		log.Debugf("Parsed: %v", out)
+	if err != nil {
+		return nil, err
 	}
+	log.Debugf("Parsed: %v", out)
 	for _, w := range out.Waves {
 		w.correctOrdering()
 	}
@@ -341,7 +342,11 @@ func (w *Wave) correctOrdering() {
 	for _, seg := range w.ObjectSegments {
 		if seg.Positioning.Address == 0 {
 			e := findElement(l, seg.Positioning.AfterSegment)
-			l.InsertAfter(seg, e)
+			if e != nil {
+				l.InsertAfter(seg, e)
+			} else {
+				l.PushBack(seg)
+			}
 		}
 	}
 
