@@ -40,7 +40,7 @@ SECTIONS {
         MAX(
 	  ADDR(..{{index .Positioning.AfterMaxSegment 0}}.bss) + SIZEOF(..{{index .Positioning.AfterMaxSegment 0}}.bss),
           ADDR(..{{index .Positioning.AfterMaxSegment 1}}.bss) + SIZEOF(..{{index .Positioning.AfterMaxSegment 1}}.bss))
-    {{else if not .Positioning.NoLoad}}
+    {{else if not (eq .Positioning.Address 0)}}
       {{.Positioning.Address}}
     {{end}}
     :

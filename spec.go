@@ -94,7 +94,6 @@ type Positioning struct {
 	AfterMinSegment [2]string
 	AfterMaxSegment [2]string
 	Address         uint64
-	NoLoad          bool
 }
 
 type StackInfo struct {
@@ -169,8 +168,8 @@ func convertSegmentAst(s *SegmentAst) (*Segment, error) {
 			}
 			break
 		case "number":
-			seg.Positioning.Address = SignExtend(statement.Value.Int * 0x1000000)
-			seg.Positioning.NoLoad = true
+			// Don't do anything, as we don't really care here.
+			// All that matters for code is the rom address.
 			break
 		case "entry":
 			seg.Entry = &statement.Value.ConstantValue.Lhs.Symbol
