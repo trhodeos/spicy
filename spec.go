@@ -1,6 +1,7 @@
 package spicy
 
 import (
+	"container/list"
 	"errors"
 	"fmt"
 	"github.com/alecthomas/participle"
@@ -279,6 +280,9 @@ func ParseSpec(r io.Reader) (*Spec, error) {
 	if err == nil {
 		log.Debugf("Parsed: %v", out)
 	}
+	for _, w := range out.Waves {
+		w.correctOrdering()
+	}
 	return out, err
 }
 
@@ -313,6 +317,41 @@ func (w *Wave) checkValidity() error {
 	// Per-spec checks
 	// Wave checks
 	return nil
+}
+
+func findElement(l *list.List, name string) *list.Element {
+	for e := l.Front(); e != nil; e = e.Next() {
+		original, _ := e.Value.(*Segment)
+		if original.Name == name {
+			return e
+		}
+	}
+	return nil
+}
+
+func (w *Wave) correctOrdering() {
+	// TODO(trhodeos): Make this actually correct. This just places any
+	// explicitly addressed segments before any 'after.*' segments. If
+	// 'after' segments depend on other 'after' segments, this'll break.
+	l := list.New()
+	for _, seg := range w.ObjectSegments {
+		if seg.Positioning.Address != 0 {
+			l.PushBack(seg)
+		}
+	}
+	for _, seg := range w.ObjectSegments {
+		if seg.Positioning.Address == 0 {
+			e := findElement(l, seg.Positioning.AfterSegment)
+			l.InsertAfter(seg, e)
+		}
+	}
+
+	newSegments := make([]*Segment, 0)
+	for e := l.Front(); e != nil; e = e.Next() {
+		original, _ := e.Value.(*Segment)
+		newSegments = append(newSegments, original)
+	}
+	w.ObjectSegments = newSegments
 }
 
 func (w *Wave) GetBootSegment() *Segment {
