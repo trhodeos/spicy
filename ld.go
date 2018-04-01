@@ -77,6 +77,19 @@ SECTIONS {
     _RomSize += ( _{{.Name}}SegmentBssEnd - _{{.Name}}SegmentBssStart );
     _{{.Name}}SegmentBssSize = ( _{{.Name}}SegmentBssEnd - _{{.Name}}SegmentBssStart );
   {{ end }}
+  {{range .RawSegments -}}
+    _{{.Name}}SegmentRomStart = _RomSize;
+    ..{{.Name}} :
+    {
+        _{{.Name}}SegmentDataStart = .;
+      {{range .Includes -}}
+      "{{.}}.o" (.data)
+      {{end}}
+        _{{.Name}}SegmentDataEnd = .;
+    } > ram
+    _RomSize += ( _{{.Name}}SegmentDataEnd - _{{.Name}}SegmentDataStart );
+    _{{.Name}}SegmentRomEnd = _RomSize;
+  {{ end }}
   /DISCARD/ :
   {
         *(.MIPS.abiflags*)
