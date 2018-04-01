@@ -29,7 +29,7 @@ SECTIONS {
     _RomStart = _RomSize;
     {{range .ObjectSegments -}}
     _{{.Name}}SegmentRomStart = _RomSize;
-    ..{{.Name}} {{if not .Positioning.NoLoad }}  {{.Positioning.Address}} {{end}} :
+    ..{{.Name}} {{if ne .Positioning.AfterSegment ""}} ADDR(..{{.Positioning.AfterSegment}}.bss)  + SIZEOF(..{{.Positioning.AfterSegment}}.bss) {{else if not .Positioning.NoLoad}} {{.Positioning.Address}} {{end}} :
     {
         _{{.Name}}SegmentStart = .;
         . = ALIGN(0x10);
