@@ -45,48 +45,48 @@ SECTIONS {
     {{end}}
     :
     {
-        _{{.Name}}SegmentStart = .;
-        . = ALIGN(0x10);
-        _{{.Name}}SegmentTextStart = .;
-            {{range .Includes -}}
-              {{.}} (.text)
-            {{end}}
-        _{{.Name}}SegmentTextEnd = .;
-        _{{.Name}}SegmentDataStart = .;
-            {{range .Includes -}}
-              {{.}} (.data)
-            {{end}}
-            {{range .Includes -}}
-              {{.}} (.rodata*)
-            {{end}}
-            {{range .Includes -}}
-              {{.}} (.sdata)
-            {{end}}
-        . = ALIGN(0x10);
-        _{{.Name}}SegmentDataEnd = .;
+      _{{.Name}}SegmentStart = .;
+      . = ALIGN(0x10);
+      _{{.Name}}SegmentTextStart = .;
+      {{range .Includes -}}
+        {{.}} (.text)
+      {{end}}
+      _{{.Name}}SegmentTextEnd = .;
+      _{{.Name}}SegmentDataStart = .;
+      {{range .Includes -}}
+        {{.}} (.data)
+      {{end}}
+      {{range .Includes -}}
+        {{.}} (.rodata*)
+      {{end}}
+      {{range .Includes -}}
+        {{.}} (.sdata)
+      {{end}}
+      . = ALIGN(0x10);
+      _{{.Name}}SegmentDataEnd = .;
     } > ram
     _RomSize += ( _{{.Name}}SegmentDataEnd - _{{.Name}}SegmentTextStart );
     _{{.Name}}SegmentRomEnd = _RomSize;
 
     ..{{.Name}}.bss ADDR(..{{.Name}}) + SIZEOF(..{{.Name}}) (NOLOAD) :
     {
-        . = ALIGN(0x10);
-        _{{.Name}}SegmentBssStart = .;
-            {{range .Includes -}}
-              {{.}} (.sbss)
-            {{end}}
-            {{range .Includes -}}
-              {{.}} (.scommon)
-            {{end}}
-            {{range .Includes -}}
-              {{.}} (.bss)
-            {{end}}
-            {{range .Includes -}}
-              {{.}} (COMMON)
-            {{end}}
-        . = ALIGN(0x10);
-        _{{.Name}}SegmentBssEnd = .;
-        _{{.Name}}SegmentEnd = .;
+      . = ALIGN(0x10);
+      _{{.Name}}SegmentBssStart = .;
+      {{range .Includes -}}
+        {{.}} (.sbss)
+      {{end}}
+      {{range .Includes -}}
+        {{.}} (.scommon)
+      {{end}}
+      {{range .Includes -}}
+        {{.}} (.bss)
+      {{end}}
+      {{range .Includes -}}
+        {{.}} (COMMON)
+      {{end}}
+      . = ALIGN(0x10);
+      _{{.Name}}SegmentBssEnd = .;
+      _{{.Name}}SegmentEnd = .;
     } > ram
     _RomSize += ( _{{.Name}}SegmentBssEnd - _{{.Name}}SegmentBssStart );
     _{{.Name}}SegmentBssSize = ( _{{.Name}}SegmentBssEnd - _{{.Name}}SegmentBssStart );
@@ -95,27 +95,27 @@ SECTIONS {
     _{{.Name}}SegmentRomStart = _RomSize;
     ..{{.Name}} :
     {
-        _{{.Name}}SegmentDataStart = .;
+      _{{.Name}}SegmentDataStart = .;
       {{range .Includes -}}
       "{{.}}.o"
       {{end}}
-        _{{.Name}}SegmentDataEnd = .;
+      _{{.Name}}SegmentDataEnd = .;
     } > ram
     _RomSize += ( _{{.Name}}SegmentDataEnd - _{{.Name}}SegmentDataStart );
     _{{.Name}}SegmentRomEnd = _RomSize;
   {{ end }}
   /DISCARD/ :
   {
-        *(.MIPS.abiflags*)
-        *(.mdebug*)
-        *(.gnu.attributes*)
-        *(.pdr*)
-        *(.reginfo*)
-        *(.comment*)
-        *(.options*)
-        *(.gptab*)
-        *(.note*)
-        *(.rel.dyn*)
+    *(.MIPS.abiflags*)
+    *(.mdebug*)
+    *(.gnu.attributes*)
+    *(.pdr*)
+    *(.reginfo*)
+    *(.comment*)
+    *(.options*)
+    *(.gptab*)
+    *(.note*)
+    *(.rel.dyn*)
   }
   _RomEnd = _RomSize;
 }
