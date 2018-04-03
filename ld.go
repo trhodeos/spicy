@@ -18,13 +18,14 @@ func createLdScript(w *Wave) (io.Reader, error) {
 	t := `
 ENTRY(_start)
 MEMORY {
-    ram (RX) : ORIGIN = 0xFFFFFFFF80000400, LENGTH = 0x77FFFBFF
+    boot (RX) : ORIGIN = 0xFFFFFFFF80000400, LENGTH = 0x50
+    ram (RWX) : ORIGIN = 0xFFFFFFFF80000450, LENGTH = 0x77FFFBAF
 }
 SECTIONS {
     ..generatedStartEntry 0xFFFFFFFF80000400 :
     {
       a.out (.text)
-    } > ram
+    } > boot
     _RomSize = 0x1050;
     _RomStart = _RomSize;
     {{range .ObjectSegments -}}
@@ -65,7 +66,7 @@ SECTIONS {
       . = ALIGN(0x10);
       _{{.Name}}SegmentDataEnd = .;
     } > ram
-    _RomSize += ( _{{.Name}}SegmentDataEnd - _{{.Name}}SegmentTextStart );
+    _RomSize += SIZEOF(..{{.Name}});
     _{{.Name}}SegmentRomEnd = _RomSize;
 
     ..{{.Name}}.bss ADDR(..{{.Name}}) + SIZEOF(..{{.Name}}) (NOLOAD) :
@@ -88,8 +89,8 @@ SECTIONS {
       _{{.Name}}SegmentBssEnd = .;
       _{{.Name}}SegmentEnd = .;
     } > ram
-    _RomSize += ( _{{.Name}}SegmentBssEnd - _{{.Name}}SegmentBssStart );
-    _{{.Name}}SegmentBssSize = ( _{{.Name}}SegmentBssEnd - _{{.Name}}SegmentBssStart );
+    _RomSize += SIZEOF(..{{.Name}}.bss);
+    _{{.Name}}SegmentBssSize = SIZEOF( ..{{.Name}}.bss);
   {{ end }}
   {{range .RawSegments -}}
     _{{.Name}}SegmentRomStart = _RomSize;
@@ -101,7 +102,7 @@ SECTIONS {
       {{end}}
       _{{.Name}}SegmentDataEnd = .;
     } > ram
-    _RomSize += ( _{{.Name}}SegmentDataEnd - _{{.Name}}SegmentDataStart );
+    _RomSize += SIZEOF(..{{.Name}});
     _{{.Name}}SegmentRomEnd = _RomSize;
   {{ end }}
   /DISCARD/ :
