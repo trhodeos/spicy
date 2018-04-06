@@ -18,15 +18,16 @@ func createLdScript(w *Wave) (io.Reader, error) {
 	t := `
 ENTRY(_start)
 MEMORY {
-    boot (RX) : ORIGIN = 0xFFFFFFFF80000400, LENGTH = 0x50
-    ram (RWX) : ORIGIN = 0xFFFFFFFF80000450, LENGTH = 0x77FFFBAF
+    ram (RX) : ORIGIN = 0xFFFFFFFF80000000, LENGTH = 0x7FFFFFFF
 }
 SECTIONS {
     ..generatedStartEntry 0xFFFFFFFF80000400 :
     {
       a.out (.text)
-    } > boot
-    _RomSize = 0x1050;
+      a.out (.bss)
+      a.out (.data)
+    } > ram
+    _RomSize = 0x450;
     _RomStart = _RomSize;
     {{range .ObjectSegments -}}
     _{{.Name}}SegmentRomStart = _RomSize;
@@ -35,11 +36,11 @@ SECTIONS {
         ADDR(..{{.Positioning.AfterSegment}}.bss) + SIZEOF(..{{.Positioning.AfterSegment}}.bss)
     {{else if ne (index .Positioning.AfterMinSegment 0) ""}}
         MIN(
-	  ADDR(..{{index .Positioning.AfterMinSegment 0}}.bss) + SIZEOF(..{{index .Positioning.AfterMinSegment 0}}.bss),
+          ADDR(..{{index .Positioning.AfterMinSegment 0}}.bss) + SIZEOF(..{{index .Positioning.AfterMinSegment 0}}.bss),
           ADDR(..{{index .Positioning.AfterMinSegment 1}}.bss) + SIZEOF(..{{index .Positioning.AfterMinSegment 1}}.bss))
     {{else if ne (index .Positioning.AfterMaxSegment 0) ""}}
         MAX(
-	  ADDR(..{{index .Positioning.AfterMaxSegment 0}}.bss) + SIZEOF(..{{index .Positioning.AfterMaxSegment 0}}.bss),
+          ADDR(..{{index .Positioning.AfterMaxSegment 0}}.bss) + SIZEOF(..{{index .Positioning.AfterMaxSegment 0}}.bss),
           ADDR(..{{index .Positioning.AfterMaxSegment 1}}.bss) + SIZEOF(..{{index .Positioning.AfterMaxSegment 1}}.bss))
     {{else if not (eq .Positioning.Address 0)}}
       {{.Positioning.Address}}
