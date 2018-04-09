@@ -108,16 +108,8 @@ SECTIONS {
   {{ end }}
   /DISCARD/ :
   {
-    *(.MIPS.abiflags*)
-    *(.mdebug*)
-    *(.gnu.attributes*)
-    *(.pdr*)
-    *(.reginfo*)
-    *(.comment*)
-    *(.options*)
-    *(.gptab*)
-    *(.note*)
-    *(.rel.dyn*)
+    /* Discard everything we haven't explicitly used. */
+    *(*)
   }
   _RomEnd = _RomSize;
 }
