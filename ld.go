@@ -21,15 +21,18 @@ MEMORY {
     ram (RX) : ORIGIN = 0xFFFFFFFF80000000, LENGTH = 0x7FFFFFFF
 }
 SECTIONS {
-    ..generatedStartEntry 0xFFFFFFFF80000400 :
+    _RomStart = 0x1000;
+    _RomSize = _RomStart;
+    ..generatedStartEntry 0xFFFFFFFF80000400 : AT(_RomSize)
     {
       a.out (.text)
       a.out (.bss)
       a.out (.data)
     } > ram
-    _RomSize = 0x450;
-    _RomStart = _RomSize;
     {{range .ObjectSegments -}}
+      {{if not (eq .Positioning.Address 0)}}
+        _RomSize = {{.Positioning.Address}} - 0xFFFFFFFF80000400 + _RomStart;
+      {{end}}
     _{{.Name}}SegmentRomStart = _RomSize;
     ..{{.Name}}
     {{if ne .Positioning.AfterSegment ""}}
@@ -45,7 +48,7 @@ SECTIONS {
     {{else if not (eq .Positioning.Address 0)}}
       {{.Positioning.Address}}
     {{end}}
-    :
+    : AT(_RomSize)
     {
       _{{.Name}}SegmentStart = .;
       . = ALIGN(0x10);
@@ -67,10 +70,10 @@ SECTIONS {
       . = ALIGN(0x10);
       _{{.Name}}SegmentDataEnd = .;
     } > ram
-    _RomSize += SIZEOF(..{{.Name}});
+    _RomSize += _{{.Name}}SegmentDataEnd - _{{.Name}}SegmentTextStart;
     _{{.Name}}SegmentRomEnd = _RomSize;
 
-    ..{{.Name}}.bss ADDR(..{{.Name}}) + SIZEOF(..{{.Name}}) (NOLOAD) :
+    ..{{.Name}}.bss ADDR(..{{.Name}}) + SIZEOF(..{{.Name}}) (NOLOAD) : AT(_RomSize)
     {
       . = ALIGN(0x10);
       _{{.Name}}SegmentBssStart = .;
@@ -90,12 +93,11 @@ SECTIONS {
       _{{.Name}}SegmentBssEnd = .;
       _{{.Name}}SegmentEnd = .;
     } > ram
-    _RomSize += SIZEOF(..{{.Name}}.bss);
-    _{{.Name}}SegmentBssSize = SIZEOF( ..{{.Name}}.bss);
+    _{{.Name}}SegmentBssSize =  _{{.Name}}SegmentBssEnd - _{{.Name}}SegmentBssStart;
   {{ end }}
   {{range .RawSegments -}}
     _{{.Name}}SegmentRomStart = _RomSize;
-    ..{{.Name}} :
+    ..{{.Name}} : AT(_RomSize)
     {
       _{{.Name}}SegmentDataStart = .;
       {{range .Includes -}}
