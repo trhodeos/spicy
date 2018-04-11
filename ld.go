@@ -18,20 +18,21 @@ func createLdScript(w *Wave) (io.Reader, error) {
 	t := `
 ENTRY(_start)
 MEMORY {
-    ram (RX) : ORIGIN = 0xFFFFFFFF80000000, LENGTH = 0x7FFFFFFF
+    ram (RX) : ORIGIN = 0x80000000, LENGTH = 0x7FFFFFFF
+    ram.bss (RW) : ORIGIN = 0x80000000, LENGTH = 0x7FFFFFFF
 }
 SECTIONS {
     _RomStart = 0x1000;
     _RomSize = _RomStart;
-    ..generatedStartEntry 0xFFFFFFFF80000400 : AT(_RomSize)
+    ..generatedStartEntry 0x80000400 : AT(_RomSize)
     {
       a.out (.text)
       a.out (.bss)
       a.out (.data)
     } > ram
     {{range .ObjectSegments -}}
-      {{if not (eq .Positioning.Address 0)}}
-        _RomSize = {{.Positioning.Address}} - 0xFFFFFFFF80000400 + _RomStart;
+      {{if (gt .Positioning.Address 0x80000400)}}
+        _RomSize = ({{.Positioning.Address}} - 0x80000400) + _RomStart;
       {{end}}
     _{{.Name}}SegmentRomStart = _RomSize;
     ..{{.Name}}
@@ -70,10 +71,10 @@ SECTIONS {
       . = ALIGN(0x10);
       _{{.Name}}SegmentDataEnd = .;
     } > ram
-    _RomSize += _{{.Name}}SegmentDataEnd - _{{.Name}}SegmentTextStart;
+    _RomSize += (_{{.Name}}SegmentDataEnd - _{{.Name}}SegmentTextStart);
     _{{.Name}}SegmentRomEnd = _RomSize;
 
-    ..{{.Name}}.bss ADDR(..{{.Name}}) + SIZEOF(..{{.Name}}) (NOLOAD) : AT(_RomSize)
+    ..{{.Name}}.bss ADDR(..{{.Name}}) + SIZEOF(..{{.Name}}) (NOLOAD) :
     {
       . = ALIGN(0x10);
       _{{.Name}}SegmentBssStart = .;
@@ -92,7 +93,7 @@ SECTIONS {
       . = ALIGN(0x10);
       _{{.Name}}SegmentBssEnd = .;
       _{{.Name}}SegmentEnd = .;
-    } > ram
+    } > ram.bss
     _{{.Name}}SegmentBssSize =  _{{.Name}}SegmentBssEnd - _{{.Name}}SegmentBssStart;
   {{ end }}
   {{range .RawSegments -}}

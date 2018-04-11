@@ -130,7 +130,7 @@ func convertSegmentAst(s *SegmentAst) (*Segment, error) {
 			seg.Name = statement.Value.String
 			break
 		case "address":
-			seg.Positioning.Address = SignExtend(statement.Value.Int)
+			seg.Positioning.Address = statement.Value.Int
 			break
 		case "after":
 			if statement.Value.String != "" {
@@ -168,6 +168,7 @@ func convertSegmentAst(s *SegmentAst) (*Segment, error) {
 			}
 			break
 		case "number":
+			seg.Positioning.Address = statement.Value.Int * 0x1000000
 			// Don't do anything, as we don't really care here.
 			// All that matters for code is the rom address.
 			break
@@ -217,7 +218,7 @@ func convertWaveAst(s *WaveAst, segments map[string]*Segment) (*Wave, error) {
 func (w *Wave) updateWithConstants() {
 	for _, seg := range w.ObjectSegments {
 		if seg.Flags.Boot && seg.Positioning.Address == 0 {
-			seg.Positioning.Address = SignExtend(0x80000450)
+			seg.Positioning.Address = 0x80000450
 		}
 	}
 }
@@ -333,7 +334,7 @@ func (w *Wave) correctOrdering() {
 	// TODO(trhodeos): Make this actually correct. This just places any
 	// explicitly addressed segments before any 'after.*' segments. If
 	// 'after' segments depend on other 'after' segments, this'll break.
-	l := list.New()
+	/*l := list.New()
 	for _, seg := range w.ObjectSegments {
 		if seg.Positioning.Address != 0 {
 			l.PushBack(seg)
@@ -356,6 +357,7 @@ func (w *Wave) correctOrdering() {
 		newSegments = append(newSegments, original)
 	}
 	w.ObjectSegments = newSegments
+	*/
 }
 
 func (w *Wave) GetBootSegment() *Segment {
