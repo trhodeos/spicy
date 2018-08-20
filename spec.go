@@ -266,7 +266,7 @@ func PreprocessSpec(file io.Reader, gcc Runner, includeFlags []string, defineFla
 
 func ParseSpec(r io.Reader) (*Spec, error) {
 	log.Infof("Parsing spec")
-	parser, err := participle.Build(&SpecAst{}, nil)
+	parser, err := participle.Build(&SpecAst{})
 	if err != nil {
 		return nil, err
 	}
