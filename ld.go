@@ -100,10 +100,12 @@ SECTIONS {
     _{{.Name}}SegmentRomStart = _RomSize;
     ..{{.Name}} : AT(_RomSize)
     {
+      . = ALIGN(0x10);
       _{{.Name}}SegmentDataStart = .;
       {{range .Includes -}}
       "{{.}}.o"
       {{end}}
+      . = ALIGN(0x10);
       _{{.Name}}SegmentDataEnd = .;
     } > ram
     _RomSize += SIZEOF(..{{.Name}});
