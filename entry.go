@@ -19,12 +19,13 @@ _start:
 1:
 	sw	$0, 0($8)
 	sw	$0, 4($8)
-	addi	$8, 8
 	addi	$9, 0xfff8
 	bne	$9, $0, 1b
+	addi	$8, 8
 	la	$10, {{.Entry}} + 0
 	la	$29,{{.StackInfo.Start}} + {{.StackInfo.Offset}}
 	jr	$10
+	nop
 `
 	tmpl, err := template.New("test").Parse(t)
 	if err != nil {
