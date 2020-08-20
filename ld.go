@@ -12,7 +12,7 @@ import (
 	"text/template"
 )
 
-var ldArgs = []string{"-G 0", "-S", "-noinhibit-exec", "-nostartfiles", "-nodefaultlibs", "-nostdinc", "-M"}
+var ldArgs = []string{"-G 0", "-noinhibit-exec", "-nostartfiles", "-nodefaultlibs", "-nostdinc", "-M"}
 
 func createLdScript(w *Wave) (io.Reader, error) {
 	t := `
@@ -114,7 +114,8 @@ SECTIONS {
   /DISCARD/ :
   {
     /* Discard everything we haven't explicitly used. */
-    *(*)
+    *(.eh_frame)
+    *(.MIPS.abiflags)
   }
   _RomEnd = _RomSize;
 }
