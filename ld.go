@@ -12,7 +12,7 @@ import (
 	"text/template"
 )
 
-var ldArgs = []string{"-G 0", "-S", "-noinhibit-exec", "-nostartfiles", "-nodefaultlibs", "-nostdinc", "-M"}
+var ldArgs = []string{"-G 0", "-S", "-nostartfiles", "-nodefaultlibs", "-nostdinc", "-M"}
 
 func createLdScript(w *Wave) (io.Reader, error) {
 	t := `
