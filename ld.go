@@ -12,7 +12,7 @@ import (
 	"text/template"
 )
 
-var ldArgs = []string{"-G 0", "-S", "-noinhibit-exec", "-nostartfiles", "-nodefaultlibs", "-nostdinc", "-M"}
+var ldArgs = []string{"-G 0", "-S", "-nostartfiles", "-nodefaultlibs", "-nostdinc", "-M"}
 
 func createLdScript(w *Wave) (io.Reader, error) {
 	t := `
@@ -70,7 +70,7 @@ SECTIONS {
       {{end}}
       . = ALIGN(0x10);
       _{{.Name}}SegmentDataEnd = .;
-    } > ram
+    } {{if (gt .Positioning.Address 0x80000400)}} > ram {{end}}
     _RomSize += (_{{.Name}}SegmentDataEnd - _{{.Name}}SegmentTextStart);
     _{{.Name}}SegmentRomEnd = _RomSize;
 
@@ -93,7 +93,7 @@ SECTIONS {
       . = ALIGN(0x10);
       _{{.Name}}SegmentBssEnd = .;
       _{{.Name}}SegmentEnd = .;
-    } > ram.bss
+    } {{if (gt .Positioning.Address 0x80000400)}} > ram.bss {{end}}
     _{{.Name}}SegmentBssSize =  _{{.Name}}SegmentBssEnd - _{{.Name}}SegmentBssStart;
   {{ end }}
   {{range .RawSegments -}}
