@@ -101,6 +101,11 @@ func main() {
 	as := spicy.NewRunner(*as_command)
 	objcopy := spicy.NewRunner(*objcopy_command)
 	preprocessed, err := spicy.PreprocessSpec(f, gcc, includeFlags, defineFlags, undefineFlags)
+	
+	if err != nil {
+		panic(err)
+	}
+
 	spec, err := spicy.ParseSpec(preprocessed)
 	if err != nil {
 		panic(err)
