@@ -180,7 +180,7 @@ func convertSegmentAst(s *SegmentAst) (*Segment, error) {
 			if statement.Value.ConstantValue.Lhs.Symbol != "" {
 				seg.StackInfo.Start = statement.Value.ConstantValue.Lhs.Symbol
 			} else {
-				seg.StackInfo.Start = string(statement.Value.ConstantValue.Lhs.Int)
+				seg.StackInfo.Start = fmt.Sprint(statement.Value.ConstantValue.Lhs.Int)
 			}
 			if statement.Value.ConstantValue.Rhs.Int != 0 {
 				seg.StackInfo.Offset = statement.Value.ConstantValue.Rhs.Int
