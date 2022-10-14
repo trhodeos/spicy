@@ -9,6 +9,8 @@ builds:
     - linux
     - windows
   goarch:
+    - arm
+    - arm64
     - amd64
 
 checksum:
